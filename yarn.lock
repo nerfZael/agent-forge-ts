@@ -536,6 +536,65 @@
   resolved "https://registry.yarnpkg.com/@msgpack/msgpack/-/msgpack-2.7.2.tgz#f34b8aa0c49f0dd55eb7eba577081299cbf3f90b"
   integrity sha512-rYEi46+gIzufyYUAoHDnRzkWGxajpD9vVXFQ3g1vbjrBm6P7MBmm+s/fqPa46sxa+8FOUdEuRQKaugo5a4JWpw==
 
+"@namestys/polywrap@0.11.3":
+  version "0.11.3"
+  resolved "https://registry.yarnpkg.com/@namestys/polywrap/-/polywrap-0.11.3.tgz#67b2e624c50aa79f3e0ff5cd19b110b0a2649ab3"
+  integrity sha512-DBCMMVdmfSlH17dbJwsDtp4V+TfRL+v80XwTFWuciD44m2NKG1Md+gM/7XNqioBtr46G30WmqDoZh+wa7mqdAQ==
+  dependencies:
+    "@apidevtools/json-schema-ref-parser" "9.0.9"
+    "@ethersproject/providers" "5.6.8"
+    "@ethersproject/wallet" "5.6.2"
+    "@formatjs/intl" "1.8.2"
+    "@namestys/schema-bind" "0.11.2"
+    "@polywrap/asyncify-js" "~0.12.0"
+    "@polywrap/client-config-builder-js" "~0.12.0"
+    "@polywrap/client-js" "~0.12.0"
+    "@polywrap/core-js" "~0.12.0"
+    "@polywrap/ethereum-wallet-js" "~0.1.0"
+    "@polywrap/logging-js" "0.11.2"
+    "@polywrap/os-js" "0.11.2"
+    "@polywrap/polywrap-manifest-types-js" "0.11.2"
+    "@polywrap/result" "~0.12.0"
+    "@polywrap/schema-compose" "0.11.2"
+    "@polywrap/schema-parse" "0.11.2"
+    "@polywrap/sys-config-bundle-js" "~0.12.0"
+    "@polywrap/uri-resolver-extensions-js" "~0.12.0"
+    "@polywrap/uri-resolvers-js" "~0.12.0"
+    "@polywrap/wasm-js" "~0.12.0"
+    "@polywrap/web3-config-bundle-js" "~0.12.0"
+    "@polywrap/wrap-manifest-types-js" "~0.12.0"
+    axios "0.21.2"
+    chalk "4.1.0"
+    chokidar "3.5.1"
+    commander "9.2.0"
+    content-hash "2.5.2"
+    copyfiles "2.4.1"
+    docker-compose "0.23.17"
+    extract-zip "2.0.1"
+    form-data "4.0.0"
+    fs-extra "9.0.1"
+    json-schema "0.4.0"
+    jsonschema "1.4.0"
+    mustache "4.0.1"
+    os-locale "5.0.0"
+    regex-parser "2.2.11"
+    rimraf "3.0.2"
+    toml "3.0.0"
+    typescript "4.9.5"
+    yaml "2.2.2"
+    yesno "0.4.0"
+
+"@namestys/schema-bind@0.11.2":
+  version "0.11.2"
+  resolved "https://registry.yarnpkg.com/@namestys/schema-bind/-/schema-bind-0.11.2.tgz#5a63311f1ef14abae20ba0efc86ee1ab28893a92"
+  integrity sha512-vEX7jl5IjgiLZhawl1rn5pJzZBWsExP+FY6CwQ+mcJMkStxeccsFgRIKjWG/TTyZ4CqWm75LBWneQ905+bgQ9g==
+  dependencies:
+    "@polywrap/client-js" "~0.12.0"
+    "@polywrap/os-js" "0.11.2"
+    "@polywrap/schema-parse" "0.11.2"
+    "@polywrap/wrap-manifest-types-js" "~0.12.0"
+    mustache "4.0.1"
+
 "@opentelemetry/api-metrics@0.32.0":
   version "0.32.0"
   resolved "https://registry.yarnpkg.com/@opentelemetry/api-metrics/-/api-metrics-0.32.0.tgz#0f09f78491a4b301ddf54a8b8a38ffa99981f645"
@@ -794,17 +853,6 @@
   version "0.12.2"
   resolved "https://registry.yarnpkg.com/@polywrap/result/-/result-0.12.2.tgz#99ad60da087db4dd2ad760ba1bd27a752d4af45f"
   integrity sha512-gcRUsWz3Qyd7CxWqrTTj1NCl2h74yI2lgqMlUfCn4TVdBmRqbyTe5iP+g+R/qs0qO0Ud8Sx0GAfbSuZfzClJ2g==
-
-"@polywrap/schema-bind@0.11.2":
-  version "0.11.2"
-  resolved "https://registry.yarnpkg.com/@polywrap/schema-bind/-/schema-bind-0.11.2.tgz#ebd9458abe0751ccd8dbef1ee76ce24be7a4d4b5"
-  integrity sha512-YWIOmKGHG7DKqKWfWU8SiTIsmB64xfuiHVcyP58IQ1FSUJXXTFAPGpMv3rtJimejTR4Chfye2prMJFgnJHDTnw==
-  dependencies:
-    "@polywrap/client-js" "~0.12.0"
-    "@polywrap/os-js" "0.11.2"
-    "@polywrap/schema-parse" "0.11.2"
-    "@polywrap/wrap-manifest-types-js" "~0.12.0"
-    mustache "4.0.1"
 
 "@polywrap/schema-compose@0.11.2":
   version "0.11.2"
@@ -2050,53 +2098,6 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.3.1:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz#3ba3833733646d9d3e4995946c1365a67fb07a42"
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
-
-"polywrap@https://gitpkg.now.sh/polywrap/cli/packages/cli?namesty/wrap-js-support":
-  version "0.11.2"
-  resolved "https://gitpkg.now.sh/polywrap/cli/packages/cli?namesty/wrap-js-support#e2aa63b9791121839929608755582b0d1215d7f1"
-  dependencies:
-    "@apidevtools/json-schema-ref-parser" "9.0.9"
-    "@ethersproject/providers" "5.6.8"
-    "@ethersproject/wallet" "5.6.2"
-    "@formatjs/intl" "1.8.2"
-    "@polywrap/asyncify-js" "~0.12.0"
-    "@polywrap/client-config-builder-js" "~0.12.0"
-    "@polywrap/client-js" "~0.12.0"
-    "@polywrap/core-js" "~0.12.0"
-    "@polywrap/ethereum-wallet-js" "~0.1.0"
-    "@polywrap/logging-js" "0.11.2"
-    "@polywrap/os-js" "0.11.2"
-    "@polywrap/polywrap-manifest-types-js" "0.11.2"
-    "@polywrap/result" "~0.12.0"
-    "@polywrap/schema-bind" "0.11.2"
-    "@polywrap/schema-compose" "0.11.2"
-    "@polywrap/schema-parse" "0.11.2"
-    "@polywrap/sys-config-bundle-js" "~0.12.0"
-    "@polywrap/uri-resolver-extensions-js" "~0.12.0"
-    "@polywrap/uri-resolvers-js" "~0.12.0"
-    "@polywrap/wasm-js" "~0.12.0"
-    "@polywrap/web3-config-bundle-js" "~0.12.0"
-    "@polywrap/wrap-manifest-types-js" "~0.12.0"
-    axios "0.21.2"
-    chalk "4.1.0"
-    chokidar "3.5.1"
-    commander "9.2.0"
-    content-hash "2.5.2"
-    copyfiles "2.4.1"
-    docker-compose "0.23.17"
-    extract-zip "2.0.1"
-    form-data "4.0.0"
-    fs-extra "9.0.1"
-    json-schema "0.4.0"
-    jsonschema "1.4.0"
-    mustache "4.0.1"
-    os-locale "5.0.0"
-    regex-parser "2.2.11"
-    rimraf "3.0.2"
-    toml "3.0.0"
-    typescript "4.9.5"
-    yaml "2.2.2"
-    yesno "0.4.0"
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
