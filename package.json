@@ -4,16 +4,24 @@
   "description": "",
   "main": "build/index.js",
   "scripts": {
-    "build": "tsc"
+    "bundle": "rollup -c",
+    "codegen": "npx polywrap codegen --verbose",
+    "build": "yarn codegen && yarn bundle && npx polywrap build --strategy=image"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "json5": "^2.2.3",
-    "openai": "^4.4.0"
+    "openai": "^4.4.0",
+    "tslib": "^2.6.2"
   },
   "devDependencies": {
-    "polywrap": "https://gitpkg.now.sh/polywrap/cli/packages/cli?367f34948ad68b6e6c7be700f2d06c383ddb4ada",
-    "typescript": "^5.1.6"
+    "polywrap": "https://gitpkg.now.sh/polywrap/cli/packages/cli?namesty/wrap-js-support",
+    "typescript": "^5.1.6",
+    "@rollup/plugin-commonjs": "^25.0.4",
+    "@rollup/plugin-node-resolve": "^15.2.0",
+    "@rollup/plugin-terser": "^0.4.3",
+    "@rollup/plugin-typescript": "^11.1.2",
+    "rollup": "^3.28.0"
   }
 }
