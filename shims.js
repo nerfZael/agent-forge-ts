@@ -240,11 +240,7 @@ function require(lib) {
 `;
 
 const wrapCode = (code) => {
-  return `${packagesShim}\nconst __temp = (async function () { \n${code}\n })().then(result => {
-    __wrap_subinvoke("plugin/result", "ok", { value: clean(result) })
-  }, error => {
-    __wrap_subinvoke("plugin/result", "err", { error: clean(error) })
-  });\nclean(__temp)`
+  return `${packagesShim}\nconst __temp = (function () { \n${code}\n return __main(); })();\nclean(__temp)`
 }
 
 module.exports = () => {

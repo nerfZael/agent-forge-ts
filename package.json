@@ -9,7 +9,7 @@
   "scripts": {
     "bundle": "rollup -c",
     "codegen": "polywrap codegen --verbose",
-    "build": "yarn codegen && yarn bundle && npx polywrap build --strategy=image --no-codegen",
+    "build": "yarn bundle && npx polywrap build --strategy=image --no-codegen",
     "deploy": "polywrap deploy"
   },
   "author": "",
