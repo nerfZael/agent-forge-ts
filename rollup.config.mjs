@@ -17,4 +17,5 @@ export default {
     shims(),
     // terser()
   ],
+  treeshake: false,
 };

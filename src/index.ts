@@ -2,7 +2,7 @@ import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
 
 class State {
   index = 0;
-  output: string | null = null;
+  finished: boolean = false;
 }
 
 const encode = (state: State): string => {
@@ -30,6 +30,8 @@ export class Module extends ModuleBase {
     state.index++;
 
     if (state.index > 5) {
+      state.finished = true;
+
       return {
         state: encode(state),
         output: "Agent says: I finished"
