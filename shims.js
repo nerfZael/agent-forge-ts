@@ -247,9 +247,7 @@ module.exports = () => {
   return {
     name: 'wrap-shims',
     renderChunk(code) {
-      return `
-        ${wrapCode(code)}
-      `;
+      return `${wrapCode(code)}`;
     },
   }
 }
