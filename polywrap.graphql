@@ -1,3 +1,10 @@
 type Module {
   main(args: [String!]!): Int32!
+  run(goal: String!): Step!
+  runStep(input: String, state: JSON!): Step!
+}
+
+type Step {
+  state: JSON!
+  output: String
 }
