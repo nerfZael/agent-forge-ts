@@ -536,16 +536,16 @@
   resolved "https://registry.yarnpkg.com/@msgpack/msgpack/-/msgpack-2.7.2.tgz#f34b8aa0c49f0dd55eb7eba577081299cbf3f90b"
   integrity sha512-rYEi46+gIzufyYUAoHDnRzkWGxajpD9vVXFQ3g1vbjrBm6P7MBmm+s/fqPa46sxa+8FOUdEuRQKaugo5a4JWpw==
 
-"@namestys/polywrap@0.11.3":
-  version "0.11.3"
-  resolved "https://registry.yarnpkg.com/@namestys/polywrap/-/polywrap-0.11.3.tgz#67b2e624c50aa79f3e0ff5cd19b110b0a2649ab3"
-  integrity sha512-DBCMMVdmfSlH17dbJwsDtp4V+TfRL+v80XwTFWuciD44m2NKG1Md+gM/7XNqioBtr46G30WmqDoZh+wa7mqdAQ==
+"@namestys/polywrap@0.11.5":
+  version "0.11.5"
+  resolved "https://registry.yarnpkg.com/@namestys/polywrap/-/polywrap-0.11.5.tgz#5c2ace4a139812385caf0f35e7e9a8a5c7797aab"
+  integrity sha512-LpDp0ynBNT/wmEaLaUJ5jnYkgwWeXN0c6XnUd00XKvPkyYKVcxrD8fWcDhOm6SUWxwcynVv/JY3QmOurcDaKDA==
   dependencies:
     "@apidevtools/json-schema-ref-parser" "9.0.9"
     "@ethersproject/providers" "5.6.8"
     "@ethersproject/wallet" "5.6.2"
     "@formatjs/intl" "1.8.2"
-    "@namestys/schema-bind" "0.11.2"
+    "@namestys/schema-bind" "0.11.4"
     "@polywrap/asyncify-js" "~0.12.0"
     "@polywrap/client-config-builder-js" "~0.12.0"
     "@polywrap/client-js" "~0.12.0"
@@ -584,10 +584,10 @@
     yaml "2.2.2"
     yesno "0.4.0"
 
-"@namestys/schema-bind@0.11.2":
-  version "0.11.2"
-  resolved "https://registry.yarnpkg.com/@namestys/schema-bind/-/schema-bind-0.11.2.tgz#5a63311f1ef14abae20ba0efc86ee1ab28893a92"
-  integrity sha512-vEX7jl5IjgiLZhawl1rn5pJzZBWsExP+FY6CwQ+mcJMkStxeccsFgRIKjWG/TTyZ4CqWm75LBWneQ905+bgQ9g==
+"@namestys/schema-bind@0.11.4":
+  version "0.11.4"
+  resolved "https://registry.yarnpkg.com/@namestys/schema-bind/-/schema-bind-0.11.4.tgz#d62533e2831e9f1a262028f6c919d38a8b3b8831"
+  integrity sha512-GnOL6ufRIxOZagcS6r6nS8gDbFMvjjVsO0yxBVF1KoMc2tqTvf1cCuPNGCvB9WDbu6ZZeHRnkkzLpzCi4qekYg==
   dependencies:
     "@polywrap/client-js" "~0.12.0"
     "@polywrap/os-js" "0.11.2"
