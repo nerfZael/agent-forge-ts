@@ -1,12 +1,12 @@
-type DateTime = string;
+export type DateTime = string;
 
-enum Status {
+export enum Status {
   created = "created",
   running = "running",
   completed = "completed",
 }
 
-interface Artifact {
+export interface Artifact {
   createdAt: DateTime;
   modifiedAt: DateTime;
   artifactId: string;
@@ -15,12 +15,12 @@ interface Artifact {
   fileName: string;
 }
 
-interface TaskRequestBody {
+export interface TaskRequestBody {
   input: string;
   additionalInput: any;
 }
 
-interface Task {
+export interface Task {
   createdAt: DateTime;
   modifiedAt: DateTime;
   taskId: string;
@@ -29,13 +29,13 @@ interface Task {
   artifacts: Artifact[];
 }
 
-interface StepRequestBody {
+export interface StepRequestBody {
   name: string | null;
   input: string;
   additionalInput: any;
 }
 
-interface Step {
+export interface Step {
   createdAt: DateTime;
   modifiedAt: DateTime;
   taskId: string;
@@ -50,29 +50,29 @@ interface Step {
   isLast: boolean;
 }
 
-interface Pagination {
+export interface Pagination {
   totalItems: number;
   totalPages: number;
   currentPage: number;
   pageSize: number;
 }
 
-interface TaskListResponse {
+export interface TaskListResponse {
   tasks: Task[] | null;
   pagination: Pagination | null;
 }
 
-interface TaskStepsListResponse {
+export interface TaskStepsListResponse {
   steps: Step[] | null;
   pagination: Pagination | null;
 }
 
-interface TaskArtifactsListResponse {
+export interface TaskArtifactsListResponse {
   artifacts: Artifact[] | null;
   pagination: Pagination | null;
 }
 
-interface ArtifactUpload {
+export interface ArtifactUpload {
   file: string;
   relativePath: string;
 }

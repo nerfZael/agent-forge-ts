@@ -1,5 +1,5 @@
 export function stringToArrayBuffer(str: string) {
-  var uint8Array = new Uint8Array(str.length);
+  const uint8Array = new Uint8Array(str.length);
   for (var i = 0; i < str.length; i++) {
       uint8Array[i] = str.charCodeAt(i);
   }
