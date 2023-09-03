@@ -1,5 +1,6 @@
 #import { Module, Response, KeyValuePair, Request } into HttpServer from "http/http.wrappers.dev/u/test/http-server"
 #import * into KeyValueStore from "http/http.wrappers.dev/u/test/key-value-store"
+#import * into Http from "wrapscan.io/polywrap/http@1.0"
 
 type Module {
   main(args: [String!]!): Int32!
