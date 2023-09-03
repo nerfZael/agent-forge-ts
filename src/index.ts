@@ -1,7 +1,7 @@
 import { DEFAULT_PORT, THIS_URI } from "./constants";
 import { State, decodeState, encodeState } from "./state";
 import { stringToArrayBuffer } from "./utils";
-import { Args_onStart, Args_routeGetAgentTasks, Args_routeGetAgentTasksById, Args_routeGetAgentTasksByIdArtifacts, Args_routeGetAgentTasksByIdArtifactsById, Args_routeGetAgentTasksByIdSteps, Args_routeGetAgentTasksByIdStepsById, Args_routeGetHearbeat, Args_routeGetRoot, Args_routePostAgentTasks, Args_routePostAgentTasksByIdArtifacts, Args_routePostAgentTasksByIdSteps, Args_start, HttpServer_Response, HttpServer_WrapperCallback } from "./wrap";
+import { Args_onStart, Args_routeGetAgentTasks, Args_routeGetAgentTasksById, Args_routeGetAgentTasksByIdArtifacts, Args_routeGetAgentTasksByIdArtifactsById, Args_routeGetAgentTasksByIdSteps, Args_routeGetAgentTasksByIdStepsById, Args_routeGetHearbeat, Args_routeGetRoot, Args_routePostAgentTasks, Args_routePostAgentTasksByIdArtifacts, Args_routePostAgentTasksByIdSteps, Args_start, HttpServer_HttpMethod, HttpServer_Module, HttpServer_Response, HttpServer_WrapperCallback } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
 
 export class Module extends ModuleBase {
@@ -59,9 +59,102 @@ export class Module extends ModuleBase {
       port,
       requestTimeout: 10000,
       routes: [
-
+        {
+          path: "/",
+          httpMethod: HttpServer_HttpMethod.GET,
+          handler: {
+            uri: THIS_URI,
+            method: "routeGetRoot"
+          }
+        },
+        {
+          path: "/heartbeat",
+          httpMethod: HttpServer_HttpMethod.GET,
+          handler: {
+            uri: THIS_URI,
+            method: "routeGetHearbeat"
+          }
+        },
+        {
+          path: "/agent/tasks",
+          httpMethod: HttpServer_HttpMethod.POST,
+          handler: {
+            uri: THIS_URI,
+            method: "routePostAgentTasks"
+          }
+        },
+        {
+          path: "/agent/tasks",
+          httpMethod: HttpServer_HttpMethod.GET,
+          handler: {
+            uri: THIS_URI,
+            method: "routeGetAgentTasks"
+          }
+        },
+        {
+          path: "/agent/tasks/{task_id}",
+          httpMethod: HttpServer_HttpMethod.GET,
+          handler: {
+            uri: THIS_URI,
+            method: "routeGetAgentTasksById"
+          }
+        },
+        {
+          path: "/agent/tasks/{task_id}/steps",
+          httpMethod: HttpServer_HttpMethod.GET,
+          handler: {
+            uri: THIS_URI,
+            method: "routeGetAgentTasksByIdSteps"
+          }
+        },
+        {
+          path: "/agent/tasks/{task_id}/steps",
+          httpMethod: HttpServer_HttpMethod.POST,
+          handler: {
+            uri: THIS_URI,
+            method: "routePostAgentTasksByIdSteps"
+          }
+        },
+        {
+          path: "/agent/tasks/{task_id}/steps/{step_id}",
+          httpMethod: HttpServer_HttpMethod.GET,
+          handler: {
+            uri: THIS_URI,
+            method: "routeGetAgentTasksByIdStepsById"
+          }
+        },
+        {
+          path: "/agent/tasks/{task_id}/artifacts",
+          httpMethod: HttpServer_HttpMethod.GET,
+          handler: {
+            uri: THIS_URI,
+            method: "routeGetAgentTasksByIdArtifacts"
+          }
+        },
+        {
+          path: "/agent/tasks/{task_id}/artifacts",
+          httpMethod: HttpServer_HttpMethod.POST,
+          handler: {
+            uri: THIS_URI,
+            method: "routePostAgentTasksByIdArtifacts"
+          }
+        },
+        {
+          path: "/agent/tasks/{task_id}/artifacts/{artifact_id}",
+          httpMethod: HttpServer_HttpMethod.GET,
+          handler: {
+            uri: THIS_URI,
+            method: "routeGetAgentTasksByIdArtifactsById"
+          }
+        },
       ],
       onStart: null
+    }
+
+    const serverStartResult = HttpServer_Module.start(serverStartArgs);
+
+    if (!serverStartResult.ok) {
+      return 1;
     }
 
     return 0;
