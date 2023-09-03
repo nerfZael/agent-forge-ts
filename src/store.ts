@@ -1,4 +1,5 @@
-import { Task } from "./protocolTypes";
+import { Task, TaskRequestBody } from "./protocolTypes";
+import { uuidv4 } from "./utils";
 import { KeyValueStore_Module } from "./wrap";
 
 enum StoreKey {
@@ -12,6 +13,57 @@ interface PaginationOpts {
 
 export class ProtocolStore {
   private _store = KeyValueStore_Module;
+
+  paginate<T>(items: T[], page: number, pageSize: number): T[] {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    return items.slice(start, end);
+  }
+
+  createTask(taskRequest: TaskRequestBody) {
+    const task: Task = {
+      taskId: uuidv4(),
+      input: taskRequest.input,
+      additionalInput: taskRequest.additionalInput,
+      artifacts: [],
+      createdAt: Date.now().toString(),
+      modifiedAt: Date.now().toString(),
+    }
+
+    this.addTask(task);
+
+    return task;
+  }
+
+  addTask(task: Task) {
+    this.push({
+      key: StoreKey.Tasks,
+      value: task,
+    });
+  }
+
+  getTasks(opts?: PaginationOpts): Task[] {
+    const result = this._store.get({
+      key: StoreKey.Tasks,
+    });
+
+    if (!result.ok) {
+      throw new Error(`Error getting key '${StoreKey.Tasks}' from store`);
+    }
+
+    if (!result.value) {
+      return [];
+    }
+
+    const tasks = this.decode<Task[]>(result.value);
+    return opts ? this.paginate(tasks, opts.page, opts.pageSize) : tasks;
+  }
+
+  getTaskById(id: string): Task | undefined {
+    const tasks = this.getTasks();
+
+    return tasks.find((task) => task.taskId === id);
+  }
 
   private encode(value: any) {
     const json = JSON.stringify(value);
@@ -69,41 +121,5 @@ export class ProtocolStore {
     }
 
     throw new Error(`Error getting key '${key}' from store`);
-  }
-
-  private paginate<T>(items: T[], page: number, pageSize: number): T[] {
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    return items.slice(start, end);
-}
-
-  addTask(task: Task) {
-    this.push({
-      key: StoreKey.Tasks,
-      value: task,
-    });
-  }
-
-  getTasks(opts?: PaginationOpts): Task[] {
-    const result = this._store.get({
-      key: StoreKey.Tasks,
-    });
-
-    if (!result.ok) {
-      throw new Error(`Error getting key '${StoreKey.Tasks}' from store`);
-    }
-
-    if (!result.value) {
-      return [];
-    }
-
-    const tasks = this.decode<Task[]>(result.value);
-    return opts ? this.paginate(tasks, opts.page, opts.pageSize) : tasks;
-  }
-
-  getTaskById(id: string): Task | undefined {
-    const tasks = this.getTasks();
-
-    return tasks.find((task) => task.taskId === id);
   }
 }

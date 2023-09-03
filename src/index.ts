@@ -1,6 +1,8 @@
 import { DEFAULT_PORT, THIS_URI } from "./constants";
+import { TaskRequestBody } from "./protocolTypes";
 import { State, decodeState, encodeState } from "./state";
-import { stringToArrayBuffer } from "./utils";
+import { ProtocolStore } from "./store";
+import { objectToArrayBuffer, stringToArrayBuffer } from "./utils";
 import { Args_onStart, Args_routeGetAgentTasks, Args_routeGetAgentTasksById, Args_routeGetAgentTasksByIdArtifacts, Args_routeGetAgentTasksByIdArtifactsById, Args_routeGetAgentTasksByIdSteps, Args_routeGetAgentTasksByIdStepsById, Args_routeGetHearbeat, Args_routeGetRoot, Args_routePostAgentTasks, Args_routePostAgentTasksByIdArtifacts, Args_routePostAgentTasksByIdSteps, Args_start, HttpServer_HttpMethod, HttpServer_Module, HttpServer_Response, HttpServer_WrapperCallback } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
 
@@ -170,23 +172,79 @@ export class Module extends ModuleBase {
       headers: [
           {
               key: "Content-Type",
-              value: "text/html",
+              value: "text/plain",
           },
       ],
       data: stringToArrayBuffer("Welcome to the Auto-GPT Forge"),
-  };
+    };
   }
   
   routeGetHearbeat(args: Args_routeGetHearbeat): HttpServer_Response {
-    throw new Error("Method not implemented.");
+    return {
+      statusCode: 200,
+      headers: [
+          {
+              key: "Content-Type",
+              value: "text/plain",
+          },
+      ],
+      data: stringToArrayBuffer("Server is running."),
+    };
   }
   
   routePostAgentTasks(args: Args_routePostAgentTasks): HttpServer_Response {
-    throw new Error("Method not implemented.");
+    if (args.request.body === null) {
+      throw new Error("Request body is null")
+    }
+
+    const taskRequestBody: TaskRequestBody = JSON.parse(args.request.body);
+    const store = new ProtocolStore();
+
+    const createdTask = store.createTask(taskRequestBody)
+
+    return {
+      statusCode: 200,
+      headers: [
+          {
+              key: "Content-Type",
+              value: "application/json",
+          },
+      ],
+      data: objectToArrayBuffer(createdTask),
+    };
   }
   
   routeGetAgentTasks(args: Args_routeGetAgentTasks): HttpServer_Response {
-    throw new Error("Method not implemented.");
+    const queryParams = args.request.query
+    const page = queryParams.find((param) => param.key === "page")?.value
+    const pageSize = queryParams.find((param) => param.key === "page_size")?.value
+
+    const store = new ProtocolStore();
+
+    const allTasks = store.getTasks()
+    const paginatedTasks = page && pageSize ? 
+      store.paginate(allTasks, parseInt(page), parseInt(pageSize)): allTasks;
+
+    const response = {
+      items: paginatedTasks,
+      pagination: {
+        total: allTasks.length,
+        pages: pageSize ? allTasks.length / parseInt(pageSize) : 1,
+        current: page ?? 1,
+        pageSize: pageSize ?? allTasks.length
+      }
+    }
+
+    return {
+      statusCode: 200,
+      headers: [
+          {
+              key: "Content-Type",
+              value: "application/json",
+          },
+      ],
+      data: objectToArrayBuffer(response),
+    };
   }
   
   routeGetAgentTasksById(args: Args_routeGetAgentTasksById): HttpServer_Response {
