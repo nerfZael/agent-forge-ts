@@ -1,4 +1,4 @@
-#import { Module, Response, KeyValuePair, Request } into HttpServer from "wrap://ipfs/QmZVdVcpDovikMED8zDM42PtDGhewuJ18hNy6kqP2Ukqwp"
+#import { Module, Response, KeyValuePair, Request } into HttpServer from "http/http.wrappers.dev/u/test/http-server"
 #import * into KeyValueStore from "http/http.wrappers.dev/u/test/key-value-store"
 
 type Module {
