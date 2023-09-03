@@ -1,31 +1,24 @@
+import { DEFAULT_PORT, THIS_URI } from "./constants";
+import { State, decodeState, encodeState } from "./state";
+import { Args_start, HttpServer_WrapperCallback } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
-
-class State {
-  index = 0;
-  finished: boolean = false;
-}
-
-const encode = (state: State): string => {
-  return JSON.stringify(state);
-}
-
-const decode = (stateString: string): State => {
-  return JSON.parse(stateString);
-}
 
 export class Module extends ModuleBase {
   run(args: Args_run): Step {
-    const state = new State();
+    const state: State = {
+      index: 0,
+      finished: false
+    };
 
     const result = {
-      state: encode(state),
+      state: encodeState(state),
       output: `Agent says: I started with goal: ${args.goal}`
     }
 
     return result;
   }
   runStep(args: Args_runStep): Step {
-    const state = decode(args.state);
+    const state = decodeState(args.state);
 
     state.index++;
 
@@ -33,17 +26,39 @@ export class Module extends ModuleBase {
       state.finished = true;
 
       return {
-        state: encode(state),
+        state: encodeState(state),
         output: "Agent says: I finished"
       }
     }
 
     return {
-      state: encode(state),
+      state: encodeState(state),
       output: `Agent says: ${state.index} step`
     };
   }
   main(args: Args_main): number {
-    throw new Error("Method not implemented.");
+    let port: number;
+    if (args.args.length > 0) {
+        port = parseInt(args.args[0]);
+        if (isNaN(port)) {
+            port = DEFAULT_PORT;
+        }
+    } else {
+        port = DEFAULT_PORT;
+    }
+
+    const onStart: HttpServer_WrapperCallback = {
+      uri: THIS_URI,
+      method: "onStart"
+    }
+
+    const serverStartArgs: Args_start = {
+      port,
+      requestTimeout: 10000,
+      routes: [],
+      onStart
+    }
+
+    return 0;
   }
 }

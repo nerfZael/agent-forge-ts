@@ -4,9 +4,18 @@ type Module {
   main(args: [String!]!): Int32!
   run(goal: String!): Step!
   runStep(input: String, state: JSON!): Step!
-}
 
-type Step {
-  state: JSON!
-  output: String
+  onStart: Boolean!
+
+  routeGetRoot(request: HttpServer_Request!): HttpServer_Response!
+  routeGetHearbeat(request: HttpServer_Request!): HttpServer_Response!
+  routePostAgentTasks(request: HttpServer_Request!): HttpServer_Response!
+  routeGetAgentTasks(request: HttpServer_Request!): HttpServer_Response!
+  routeGetAgentTasksById(request: HttpServer_Request!): HttpServer_Response!
+  routeGetAgentTasksByIdSteps(request: HttpServer_Request!): HttpServer_Response!
+  routePostAgentTasksByIdSteps(request: HttpServer_Request!): HttpServer_Response!
+  routeGetAgentTasksByIdStepsById(request: HttpServer_Request!): HttpServer_Response!
+  routeGetAgentTasksByIdArtifacts(request: HttpServer_Request!): HttpServer_Response!
+  routePostAgentTasksByIdArtifacts(request: HttpServer_Request!): HttpServer_Response!
+  routeGetAgentTasksByIdArtifactsById(request: HttpServer_Request!): HttpServer_Response!
 }
