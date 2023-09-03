@@ -19,3 +19,8 @@ type Module {
   routePostAgentTasksByIdArtifacts(request: HttpServer_Request!): HttpServer_Response!
   routeGetAgentTasksByIdArtifactsById(request: HttpServer_Request!): HttpServer_Response!
 }
+
+type Step {
+  state: JSON!
+  output: String
+}
