@@ -248,7 +248,38 @@ export class Module extends ModuleBase {
   }
   
   routeGetAgentTasksById(args: Args_routeGetAgentTasksById): HttpServer_Response {
-    throw new Error("Method not implemented.");
+    const routeParams = args.request.params
+    const task_id = routeParams.find((param) => param.key === "task_id")?.value
+
+    if (!task_id) throw new Error("task_id is required")
+
+    const store = new ProtocolStore();
+
+    const task = store.getTaskById(task_id);
+
+    if (!task) {
+      return {
+        statusCode: 404,
+        headers: [
+            {
+                key: "Content-Type",
+                value: "application/json",
+            },
+        ],
+        data: objectToArrayBuffer({"error": "Task not found"}),
+      };
+    }
+
+    return {
+      statusCode: 200,
+      headers: [
+          {
+              key: "Content-Type",
+              value: "application/json",
+          },
+      ],
+      data: objectToArrayBuffer(task),
+    };
   }
   
   routeGetAgentTasksByIdSteps(args: Args_routeGetAgentTasksByIdSteps): HttpServer_Response {
