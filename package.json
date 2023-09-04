@@ -9,7 +9,8 @@
   "scripts": {
     "bundle": "rollup -c",
     "codegen": "polywrap codegen --verbose",
-    "build": "yarn bundle && npx polywrap build --strategy=image --no-codegen",
+    "build": "yarn bundle && npx polywrap build --strategy=image --no-codegen && yarn resources",
+    "resources": "copyfiles ./prompts.json ./build/",
     "deploy": "polywrap deploy"
   },
   "author": "",
@@ -20,6 +21,7 @@
     "tslib": "^2.6.2"
   },
   "devDependencies": {
+    "copyfiles": "2.4.1",
     "@namestys/polywrap": "0.11.5",
     "typescript": "^5.1.6",
     "@rollup/plugin-commonjs": "^25.0.4",

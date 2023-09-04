@@ -1,0 +1,10 @@
+[
+  {
+    "name": "Initialization",
+    "value": "You are an agent."
+  },
+  {
+    "name": "Goal",
+    "value": "This is your goal: {}"
+  }
+]
