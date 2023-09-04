@@ -1,4 +1,6 @@
-import { Task, TaskRequestBody } from "./protocolTypes";
+import path from "path";
+
+import { Artifact, Task, TaskRequestBody } from "./protocolTypes";
 import { uuidv4 } from "./utils";
 import { KeyValueStore_Module } from "./wrap";
 
@@ -9,6 +11,12 @@ enum StoreKey {
 interface PaginationOpts {
   page: number;
   pageSize: number;
+}
+
+interface ArtifactFile {
+  filename?: string;
+  content_type: string;
+  file: ArrayBuffer;
 }
 
 export class ProtocolStore {
@@ -28,7 +36,7 @@ export class ProtocolStore {
       artifacts: [],
       createdAt: Date.now().toString(),
       modifiedAt: Date.now().toString(),
-    }
+    };
 
     this.addTask(task);
 
@@ -63,6 +71,48 @@ export class ProtocolStore {
     const tasks = this.getTasks();
 
     return tasks.find((task) => task.taskId === id);
+  }
+
+  addArtifactToTask(taskId: string, artifact: Artifact) {
+    const task = this.getTaskById(taskId);
+
+    if (!task) {
+      throw new Error(`Task with id '${taskId}' not found`);
+    }
+
+    task.artifacts.push(artifact);
+
+    this.addTask(task);
+  }
+
+  createArtifact(args: {
+    taskId: string;
+    fileName: string;
+    relativePath: string;
+    agentCreated: boolean;
+  }) {
+    const artifact: Artifact = {
+      artifactId: uuidv4(),
+      agentCreated: args.agentCreated,
+      createdAt: Date.now().toString(),
+      modifiedAt: Date.now().toString(),
+      relativePath: args.relativePath,
+      fileName: args.fileName,
+    };
+
+    this.addArtifactToTask(args.taskId, artifact);
+
+    return artifact;
+  }
+
+  getArtifactById(taskId: string, artifactId: string): Artifact | undefined {
+    const task = this.getTaskById(taskId);
+
+    if (!task) {
+      return undefined;
+    }
+
+    return task.artifacts.find((artifact) => artifact.artifactId === artifactId);
   }
 
   private encode(value: any) {
