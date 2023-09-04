@@ -7,54 +7,54 @@ export enum Status {
 }
 
 export interface Artifact {
-  createdAt: DateTime;
-  modifiedAt: DateTime;
-  artifactId: string;
-  agentCreated: boolean;
-  relativePath: string;
-  fileName: string;
+  created_at: DateTime;
+  modified_at: DateTime;
+  artifact_id: string;
+  agent_created: boolean;
+  relative_path: string;
+  file_name: string;
 }
 
 export interface TaskRequestBody {
   input: string;
-  additionalInput: any;
+  additional_input: any;
 }
 
 export interface Task {
-  createdAt: DateTime;
-  modifiedAt: DateTime;
-  taskId: string;
+  created_at: DateTime;
+  modified_at: DateTime;
+  task_id: string;
   input: string;
-  additionalInput: any;
+  additional_input: any;
   artifacts: Artifact[];
 }
 
 export interface StepRequestBody {
   name: string | null;
   input: string;
-  additionalInput: any;
+  additional_input: any;
 }
 
 export interface Step {
-  createdAt: DateTime;
-  modifiedAt: DateTime;
-  taskId: string;
-  stepId: string;
+  created_at: DateTime;
+  modified_at: DateTime;
+  task_id: string;
+  step_id: string;
   name: string | null;
   status: Status;
   input: string;
-  additionalInput: any;
+  additional_input: any;
   output: string | null;
-  additionalOutput: any;
+  additional_output: any;
   artifacts: Artifact[];
-  isLast: boolean;
+  is_last: boolean;
 }
 
 export interface Pagination {
-  totalItems: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
+  total_items: number;
+  total_pages: number;
+  current_page: number;
+  page_size: number;
 }
 
 export interface TaskListResponse {
@@ -74,5 +74,5 @@ export interface TaskArtifactsListResponse {
 
 export interface ArtifactUpload {
   file: string;
-  relativePath: string;
+  relative_path: string;
 }

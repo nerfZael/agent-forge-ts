@@ -1,11 +1,29 @@
+import path from "path";
+
 import { DEFAULT_PORT, THIS_URI } from "./constants";
 import { Prompts } from "./prompts";
 import { TaskRequestBody } from "./protocolTypes";
 import { State, decodeState, encodeState } from "./state";
 import { ProtocolStore } from "./store";
-import { objectToArrayBuffer, stringToArrayBuffer } from "./utils";
+import { objectToArrayBuffer, stringToArrayBuffer, uuidv4 } from "./utils";
 import { Args_onStart, Args_routeGetAgentTasks, Args_routeGetAgentTasksById, Args_routeGetAgentTasksByIdArtifacts, Args_routeGetAgentTasksByIdArtifactsById, Args_routeGetAgentTasksByIdSteps, Args_routeGetAgentTasksByIdStepsById, Args_routeGetHearbeat, Args_routeGetRoot, Args_routePostAgentTasks, Args_routePostAgentTasksByIdArtifacts, Args_routePostAgentTasksByIdSteps, Args_start, HttpServer_HttpMethod, HttpServer_Module, HttpServer_Response, HttpServer_WrapperCallback } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
+import { Workspace } from "./workspace";
+
+const createPaginationResponse = (args: {
+  items: any[];
+  page?: string;
+  pageSize?: string;
+}) => {
+  const { items, page, pageSize } = args;
+
+  return {
+    total: items.length,
+    pages: pageSize ? items.length / parseInt(pageSize) : 1,
+    current: parseInt(page ?? "1"),
+    pageSize: pageSize ? parseInt(pageSize) : items.length
+  }
+}
 
 export class Module extends ModuleBase {
   run(args: Args_run): Step {
@@ -230,12 +248,11 @@ export class Module extends ModuleBase {
 
     const response = {
       items: paginatedTasks,
-      pagination: {
-        total: allTasks.length,
-        pages: pageSize ? allTasks.length / parseInt(pageSize) : 1,
-        current: page ?? 1,
-        pageSize: pageSize ?? allTasks.length
-      }
+      pagination: createPaginationResponse({
+        items: allTasks,
+        page,
+        pageSize
+      })
     }
 
     return {
@@ -298,11 +315,113 @@ export class Module extends ModuleBase {
   }
   
   routeGetAgentTasksByIdArtifacts(args: Args_routeGetAgentTasksByIdArtifacts): HttpServer_Response {
-    throw new Error("Method not implemented.");
+    const routeParams = args.request.params
+    const task_id = routeParams.find((param) => param.key === "task_id")?.value
+
+    if (!task_id) throw new Error("task_id is required")
+
+    const queryParams = args.request.query
+    const page = queryParams.find((param) => param.key === "page")?.value
+    const pageSize = queryParams.find((param) => param.key === "page_size")?.value
+
+    const store = new ProtocolStore();
+
+    const task = store.getTaskById(task_id);
+
+    if (!task) {
+      return {
+        statusCode: 404,
+        headers: [
+            {
+                key: "Content-Type",
+                value: "application/json",
+            },
+        ],
+        data: objectToArrayBuffer({"error": "Task not found"}),
+      };
+    }
+
+    const allArtifacts = task?.artifacts ?? [];
+    const paginatedArtifacts = page && pageSize ?
+      store.paginate(allArtifacts, parseInt(page), parseInt(pageSize)): allArtifacts;
+
+    return {
+      statusCode: 200,
+      headers: [
+          {
+              key: "Content-Type",
+              value: "application/json",
+          },
+      ],
+      data: objectToArrayBuffer({
+        items: paginatedArtifacts,
+        pagination: createPaginationResponse({
+          items: allArtifacts,
+          page,
+          pageSize
+        })
+      }),
+    };
   }
   
   routePostAgentTasksByIdArtifacts(args: Args_routePostAgentTasksByIdArtifacts): HttpServer_Response {
-    throw new Error("Method not implemented.");
+    const body = args.request.body;
+
+    if (!body) {
+      throw new Error("Request body is null")
+    }
+
+    const data = JSON.parse(body) as {
+      task_id?: string;
+      relative_path?: string;
+      file?: {
+        file: ArrayBuffer;
+        filename?: string;
+      };
+    };
+
+    if (!data.task_id) {
+      throw new Error("task_id is required")
+    }
+
+    if (!data.relative_path) {
+      throw new Error("relative_path is required")
+    }
+
+    if (!data.file) {
+      throw new Error("file is required")
+    }
+    
+    const fileName = data.file.filename ?? uuidv4();
+    let filePath: string;
+
+    if (data.relative_path.endsWith(fileName)) {
+        filePath = data.relative_path;
+    } else {
+        filePath = path.join(data.relative_path, fileName);
+    }
+
+    const workspace = new Workspace();
+    workspace.write(data.task_id, filePath, data.file.file);
+
+    const store = new ProtocolStore();
+    const artifact = store.createArtifact({
+      taskId: data.task_id,
+      fileName,
+      relativePath: data.relative_path,
+      agentCreated: true
+    });
+
+    return {
+      statusCode: 200,
+      headers: [
+          {
+              key: "Content-Type",
+              value: "application/json",
+          },
+      ],
+      data: objectToArrayBuffer(artifact),
+    };
   }
   
   routeGetAgentTasksByIdArtifactsById(args: Args_routeGetAgentTasksByIdArtifactsById): HttpServer_Response {

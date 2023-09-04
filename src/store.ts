@@ -1,5 +1,3 @@
-import path from "path";
-
 import { Artifact, Task, TaskRequestBody } from "./protocolTypes";
 import { uuidv4 } from "./utils";
 import { KeyValueStore_Module } from "./wrap";
@@ -13,12 +11,6 @@ interface PaginationOpts {
   pageSize: number;
 }
 
-interface ArtifactFile {
-  filename?: string;
-  content_type: string;
-  file: ArrayBuffer;
-}
-
 export class ProtocolStore {
   private _store = KeyValueStore_Module;
 
@@ -30,12 +22,12 @@ export class ProtocolStore {
 
   createTask(taskRequest: TaskRequestBody) {
     const task: Task = {
-      taskId: uuidv4(),
+      task_id: uuidv4(),
       input: taskRequest.input,
-      additionalInput: taskRequest.additionalInput,
+      additional_input: taskRequest.additional_input,
       artifacts: [],
-      createdAt: Date.now().toString(),
-      modifiedAt: Date.now().toString(),
+      created_at: Date.now().toString(),
+      modified_at: Date.now().toString(),
     };
 
     this.addTask(task);
@@ -70,7 +62,7 @@ export class ProtocolStore {
   getTaskById(id: string): Task | undefined {
     const tasks = this.getTasks();
 
-    return tasks.find((task) => task.taskId === id);
+    return tasks.find((task) => task.task_id === id);
   }
 
   addArtifactToTask(taskId: string, artifact: Artifact) {
@@ -92,12 +84,12 @@ export class ProtocolStore {
     agentCreated: boolean;
   }) {
     const artifact: Artifact = {
-      artifactId: uuidv4(),
-      agentCreated: args.agentCreated,
-      createdAt: Date.now().toString(),
-      modifiedAt: Date.now().toString(),
-      relativePath: args.relativePath,
-      fileName: args.fileName,
+      artifact_id: uuidv4(),
+      agent_created: args.agentCreated,
+      created_at: Date.now().toString(),
+      modified_at: Date.now().toString(),
+      relative_path: args.relativePath,
+      file_name: args.fileName,
     };
 
     this.addArtifactToTask(args.taskId, artifact);
@@ -112,7 +104,7 @@ export class ProtocolStore {
       return undefined;
     }
 
-    return task.artifacts.find((artifact) => artifact.artifactId === artifactId);
+    return task.artifacts.find((artifact) => artifact.artifact_id === artifactId);
   }
 
   private encode(value: any) {
