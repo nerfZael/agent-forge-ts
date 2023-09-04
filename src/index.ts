@@ -1,4 +1,5 @@
 import { DEFAULT_PORT, THIS_URI } from "./constants";
+import { Prompts } from "./prompts";
 import { TaskRequestBody } from "./protocolTypes";
 import { State, decodeState, encodeState } from "./state";
 import { ProtocolStore } from "./store";
@@ -13,9 +14,11 @@ export class Module extends ModuleBase {
       finished: false
     };
 
+    const prompts = new Prompts();
+  
     const result = {
       state: encodeState(state),
-      output: `Agent says: I started with goal: ${args.goal}`
+      output: `My goal is: ${args.goal}, My prompt is: ${prompts.list()[0].value}`
     }
 
     return result;
