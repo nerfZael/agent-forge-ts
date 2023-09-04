@@ -94,7 +94,7 @@ export class Module extends ModuleBase {
           }
         },
         {
-          path: "/agent/tasks/{task_id}",
+          path: "/agent/tasks/:task_id",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
@@ -102,7 +102,7 @@ export class Module extends ModuleBase {
           }
         },
         {
-          path: "/agent/tasks/{task_id}/steps",
+          path: "/agent/tasks/:task_id/steps",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
@@ -110,7 +110,7 @@ export class Module extends ModuleBase {
           }
         },
         {
-          path: "/agent/tasks/{task_id}/steps",
+          path: "/agent/tasks/:task_id/steps",
           httpMethod: HttpServer_HttpMethod.POST,
           handler: {
             uri: THIS_URI,
@@ -118,7 +118,7 @@ export class Module extends ModuleBase {
           }
         },
         {
-          path: "/agent/tasks/{task_id}/steps/{step_id}",
+          path: "/agent/tasks/:task_id/steps/:step_id",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
@@ -126,7 +126,7 @@ export class Module extends ModuleBase {
           }
         },
         {
-          path: "/agent/tasks/{task_id}/artifacts",
+          path: "/agent/tasks/:task_id/artifacts",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
@@ -134,7 +134,7 @@ export class Module extends ModuleBase {
           }
         },
         {
-          path: "/agent/tasks/{task_id}/artifacts",
+          path: "/agent/tasks/:task_id/artifacts",
           httpMethod: HttpServer_HttpMethod.POST,
           handler: {
             uri: THIS_URI,
@@ -142,7 +142,7 @@ export class Module extends ModuleBase {
           }
         },
         {
-          path: "/agent/tasks/{task_id}/artifacts/{artifact_id}",
+          path: "/agent/tasks/:task_id/artifacts/:artifact_id",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
@@ -156,7 +156,7 @@ export class Module extends ModuleBase {
     const serverStartResult = HttpServer_Module.start(serverStartArgs);
 
     if (!serverStartResult.ok) {
-      return 1;
+      throw new Error(serverStartResult.error)
     }
 
     return 0;
