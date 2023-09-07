@@ -1,4 +1,4 @@
-import { Artifact, Task, TaskRequestBody } from "./protocolTypes";
+import { Artifact, Status, Step, StepRequestBody, Task, TaskRequestBody } from "./protocolTypes";
 import { uuidv4 } from "./utils";
 import { KeyValueStore_Module } from "./wrap";
 
@@ -26,6 +26,7 @@ export class ProtocolStore {
       input: taskRequest.input,
       additional_input: taskRequest.additional_input,
       artifacts: [],
+      steps: [],
       created_at: Date.now().toString(),
       modified_at: Date.now().toString(),
     };
@@ -36,10 +37,17 @@ export class ProtocolStore {
   }
 
   addTask(task: Task) {
-    this.push({
+    const allTasks = this.getTasks();
+    allTasks.push(task);
+
+    const result = this._store.set({
       key: StoreKey.Tasks,
-      value: task,
-    });
+      value: this.encode(allTasks),
+    })
+
+    if (!result.ok) {
+      throw new Error(`Error setting key '${StoreKey.Tasks}' in store`);
+    }
   }
 
   getTasks(opts?: PaginationOpts): Task[] {
@@ -65,6 +73,58 @@ export class ProtocolStore {
     return tasks.find((task) => task.task_id === id);
   }
 
+  createStep(taskId: string, stepArgs: StepRequestBody, isLast: boolean) {
+    const step: Step = {
+      created_at: Date.now().toString(),
+      modified_at: Date.now().toString(),
+      task_id: taskId,
+      step_id: uuidv4(),
+      name: stepArgs.name,
+      status: Status.created,
+      input: stepArgs.input,
+      additional_input: undefined,
+      output: null,
+      additional_output: undefined,
+      artifacts: [],
+      is_last: isLast,
+    }
+
+    this.addStepToTask(taskId, step);
+
+    return step;
+  }
+
+  addStepToTask(
+    taskId: string,
+    step: Step,
+  ): Step {
+    const task = this.getTaskById(taskId);
+    
+    if (!task) {
+      throw new Error(`Task with id '${taskId}' not found`);
+    }
+
+    task.steps.push(step);
+    this.updateTask(task);
+
+    return step;
+  }
+
+  updateStep(taskId: string, stepId: string, step: Step) {
+    const task = this.getTaskById(taskId);
+
+    if (!task) {
+      throw new Error(`Task with id '${step.task_id}' not found`);
+    }
+
+    const index = task.steps.findIndex((s) => s.step_id === stepId);
+    task.steps[index] = step;
+
+    this.updateTask(task);
+
+    return step;
+  }
+
   addArtifactToTask(taskId: string, artifact: Artifact) {
     const task = this.getTaskById(taskId);
 
@@ -74,7 +134,7 @@ export class ProtocolStore {
 
     task.artifacts.push(artifact);
 
-    this.addTask(task);
+    this.updateTask(task);
   }
 
   createArtifact(args: {
@@ -107,6 +167,21 @@ export class ProtocolStore {
     return task.artifacts.find((artifact) => artifact.artifact_id === artifactId);
   }
 
+  updateTask(task: Task) {
+    const allTasks = this.getTasks();
+    const index = allTasks.findIndex((t) => t.task_id === task.task_id);
+    allTasks[index] = task;
+
+    const result = this._store.set({
+      key: StoreKey.Tasks,
+      value: this.encode(allTasks),
+    })
+
+    if (!result.ok) {
+      throw new Error(`Error setting key '${StoreKey.Tasks}' in store`);
+    }
+  }
+
   private encode(value: any) {
     const json = JSON.stringify(value);
     const uint8Array = new Uint8Array(json.length);
@@ -119,49 +194,5 @@ export class ProtocolStore {
   private decode<T>(arrayBuffer: ArrayBuffer): T {
     const uint8Array = new Uint8Array(arrayBuffer);
     return JSON.parse(String.fromCharCode.apply(null, uint8Array));
-  }
-
-  private push({ key, value }: { key: string; value: any }) {
-    const getResult = this._store.get({
-      key,
-    });
-
-    if (getResult.ok) {
-      const existingValue = getResult.value;
-
-      if (existingValue) {
-        const decodedValue = this.decode(existingValue);
-
-        if (!Array.isArray(decodedValue)) {
-          throw new Error(
-            `Tried to push to key '${key}' but existing value is not an array`
-          );
-        }
-
-        const result = this._store.set({
-          key,
-          value: this.encode([...decodedValue, value]),
-        });
-
-        if (!result.ok) {
-          throw new Error(`Error setting key '${key}' in store`);
-        }
-
-        return result.value;
-      }
-
-      const result = this._store.set({
-        key,
-        value: this.encode([value]),
-      });
-
-      if (!result.ok) {
-        throw new Error(`Error setting key '${key}' in store`);
-      }
-
-      return result.value;
-    }
-
-    throw new Error(`Error getting key '${key}' from store`);
   }
 }

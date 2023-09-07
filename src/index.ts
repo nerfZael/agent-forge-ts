@@ -2,13 +2,14 @@ import path from "path";
 
 import { DEFAULT_PORT, THIS_URI } from "./constants";
 import { Prompts } from "./prompts";
-import { TaskRequestBody } from "./protocolTypes";
+import { StepRequestBody, TaskRequestBody } from "./protocolTypes";
 import { State, decodeState, encodeState } from "./state";
 import { ProtocolStore } from "./store";
 import { objectToArrayBuffer, stringToArrayBuffer, uuidv4 } from "./utils";
 import { Args_onStart, Args_routeGetAgentTasks, Args_routeGetAgentTasksById, Args_routeGetAgentTasksByIdArtifacts, Args_routeGetAgentTasksByIdArtifactsById, Args_routeGetAgentTasksByIdSteps, Args_routeGetAgentTasksByIdStepsById, Args_routeGetHearbeat, Args_routeGetRoot, Args_routePostAgentTasks, Args_routePostAgentTasksByIdArtifacts, Args_routePostAgentTasksByIdSteps, Args_start, HttpServer_HttpMethod, HttpServer_Module, HttpServer_Response, HttpServer_WrapperCallback } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
 import { Workspace } from "./workspace";
+import { Agent } from "./agent";
 
 const createPaginationResponse = (args: {
   items: any[];
@@ -218,10 +219,15 @@ export class Module extends ModuleBase {
       throw new Error("Request body is null")
     }
 
-    const taskRequestBody: TaskRequestBody = JSON.parse(args.request.body);
-    const store = new ProtocolStore();
+    const stepRequestBody: StepRequestBody = JSON.parse(args.request.body);
 
+    const store = new ProtocolStore();
+    const agent = new Agent(store);
+
+    const taskRequestBody: TaskRequestBody = JSON.parse(args.request.body);
     const createdTask = store.createTask(taskRequestBody)
+
+    const step = agent.runNextStep(createdTask.task_id, stepRequestBody);
 
     return {
       statusCode: 200,
@@ -231,7 +237,7 @@ export class Module extends ModuleBase {
               value: "application/json",
           },
       ],
-      data: objectToArrayBuffer(createdTask),
+      data: objectToArrayBuffer(step),
     };
   }
   

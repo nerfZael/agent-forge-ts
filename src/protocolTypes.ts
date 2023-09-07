@@ -25,6 +25,7 @@ export interface Task {
   modified_at: DateTime;
   task_id: string;
   input: string;
+  steps: Step[];
   additional_input: any;
   artifacts: Artifact[];
 }
