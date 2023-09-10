@@ -9,6 +9,7 @@ type Module {
 
   onStart: Boolean!
 
+  routePostRoot(request: HttpServer_Request!): HttpServer_Response!
   routeGetRoot(request: HttpServer_Request!): HttpServer_Response!
   routeGetHearbeat(request: HttpServer_Request!): HttpServer_Response!
   routePostAgentTasks(request: HttpServer_Request!): HttpServer_Response!

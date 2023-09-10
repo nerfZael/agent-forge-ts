@@ -19,6 +19,7 @@ import {
   Args_routeGetAgentTasksByIdStepsById,
   Args_routeGetHearbeat,
   Args_routeGetRoot,
+  Args_routePostRoot,
   Args_routePostAgentTasks,
   Args_routePostAgentTasksByIdArtifacts,
   Args_routePostAgentTasksByIdSteps,
@@ -108,6 +109,14 @@ export class Module extends ModuleBase {
       routes: [
         {
           path: "/",
+          httpMethod: HttpServer_HttpMethod.POST,
+          handler: {
+            uri: THIS_URI,
+            method: "routePostRoot",
+          },
+        },
+        {
+          path: "/",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
@@ -195,8 +204,10 @@ export class Module extends ModuleBase {
           },
         },
       ],
-      onStart: null,
+      onStart,
     };
+
+    console.log(`Starting server on port: ${port}`);
 
     const serverStartResult = HttpServer_Module.start(serverStartArgs);
 
@@ -204,15 +215,29 @@ export class Module extends ModuleBase {
       throw new Error(serverStartResult.error);
     }
 
-    console.log("Server started on port", port);
-
     return 0;
   }
 
   onStart(args: Args_onStart): boolean {
-    // console.log("Server started on port", args);
+    console.log(`Server started`);
 
     return true;
+  }
+
+  routePostRoot(args: Args_routePostRoot): HttpServer_Response {
+    console.log(`THIS ROUTE WAS CALLED`);
+    console.log(`BODY: ${args.request.body}`);
+
+    return {
+      statusCode: 200,
+      headers: [
+        {
+          key: "Content-Type",
+          value: "text/plain",
+        },
+      ],
+      body: stringToArrayBuffer("Welcome to the Auto-GPT Forge"),
+    };
   }
 
   routeGetRoot(args: Args_routeGetRoot): HttpServer_Response {

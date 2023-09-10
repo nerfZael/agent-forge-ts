@@ -1,5 +1,4 @@
-const packagesShim =
-`
+const packagesShim = `
 // HACK: This is a hack because undefined, null, and functions are not supported by the JS Engine
 function clean(obj, root = true) {
   if (obj === undefined) {
@@ -28,11 +27,8 @@ function clean(obj, root = true) {
 }
 
 const console = {
-  log: function(...args) {
-    __wrap_subinvoke("plugin/console", "log", { args: clean(args) });
-  },
-  error: function(...args) {
-    __wrap_subinvoke("plugin/console", "error", { args: clean(args) });
+  log: function(str) {
+    __wrap_debug_log(str);
   },
 };
 
@@ -240,14 +236,14 @@ function require(lib) {
 `;
 
 const wrapCode = (code) => {
-  return `${packagesShim}\nconst __temp = (function () { \n${code}\n return __main(); })();\nclean(__temp)`
-}
+  return `${packagesShim}\nconst __temp = (function () { \n${code}\n return __main(); })();\nclean(__temp)`;
+};
 
 module.exports = () => {
   return {
-    name: 'wrap-shims',
+    name: "wrap-shims",
     renderChunk(code) {
       return `${wrapCode(code)}`;
     },
-  }
-}
+  };
+};
