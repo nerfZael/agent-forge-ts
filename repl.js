@@ -21,4 +21,5 @@ function wrap(uri) {
 
 const mod = wrap("script/bundled/wrap.js");
 
-mod.run({ goal: "yo" })
+// mod.run({ goal: "yo" })
+mod.main({ args: [] })

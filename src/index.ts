@@ -1,12 +1,33 @@
-import path from "path";
-
 import { DEFAULT_PORT, THIS_URI } from "./constants";
 import { Prompts } from "./prompts";
 import { StepRequestBody, TaskRequestBody } from "./protocolTypes";
 import { State, decodeState, encodeState } from "./state";
 import { ProtocolStore } from "./store";
-import { objectToArrayBuffer, stringToArrayBuffer, uuidv4 } from "./utils";
-import { Args_onStart, Args_routeGetAgentTasks, Args_routeGetAgentTasksById, Args_routeGetAgentTasksByIdArtifacts, Args_routeGetAgentTasksByIdArtifactsById, Args_routeGetAgentTasksByIdSteps, Args_routeGetAgentTasksByIdStepsById, Args_routeGetHearbeat, Args_routeGetRoot, Args_routePostAgentTasks, Args_routePostAgentTasksByIdArtifacts, Args_routePostAgentTasksByIdSteps, Args_start, HttpServer_HttpMethod, HttpServer_Module, HttpServer_Response, HttpServer_WrapperCallback } from "./wrap";
+import {
+  objectToArrayBuffer,
+  parseBufferToJson,
+  stringToArrayBuffer,
+  uuidv4,
+} from "./utils";
+import {
+  Args_onStart,
+  Args_routeGetAgentTasks,
+  Args_routeGetAgentTasksById,
+  Args_routeGetAgentTasksByIdArtifacts,
+  Args_routeGetAgentTasksByIdArtifactsById,
+  Args_routeGetAgentTasksByIdSteps,
+  Args_routeGetAgentTasksByIdStepsById,
+  Args_routeGetHearbeat,
+  Args_routeGetRoot,
+  Args_routePostAgentTasks,
+  Args_routePostAgentTasksByIdArtifacts,
+  Args_routePostAgentTasksByIdSteps,
+  Args_start,
+  HttpServer_HttpMethod,
+  HttpServer_Module,
+  HttpServer_Response,
+  HttpServer_WrapperCallback,
+} from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
 import { Workspace } from "./workspace";
 import { Agent } from "./agent";
@@ -22,27 +43,29 @@ const createPaginationResponse = (args: {
     total: items.length,
     pages: pageSize ? items.length / parseInt(pageSize) : 1,
     current: parseInt(page ?? "1"),
-    pageSize: pageSize ? parseInt(pageSize) : items.length
-  }
-}
+    pageSize: pageSize ? parseInt(pageSize) : items.length,
+  };
+};
 
 export class Module extends ModuleBase {
   run(args: Args_run): Step {
     const state: State = {
       index: 0,
-      finished: false
+      finished: false,
     };
 
     const prompts = new Prompts();
-  
+
     const result = {
       state: encodeState(state),
-      output: `My goal is: ${args.goal}, My prompt is: ${prompts.list()[0].value}`
-    }
+      output: `My goal is: ${args.goal}, My prompt is: ${
+        prompts.list()[0].value
+      }`,
+    };
 
     return result;
   }
-  
+
   runStep(args: Args_runStep): Step {
     const state = decodeState(args.state);
 
@@ -53,31 +76,31 @@ export class Module extends ModuleBase {
 
       return {
         state: encodeState(state),
-        output: "Agent says: I finished"
-      }
+        output: "Agent says: I finished",
+      };
     }
 
     return {
       state: encodeState(state),
-      output: `Agent says: ${state.index} step`
+      output: `Agent says: ${state.index} step`,
     };
   }
-  
+
   main(args: Args_main): number {
     let port: number;
     if (args.args.length > 0) {
-        port = parseInt(args.args[0]);
-        if (isNaN(port)) {
-            port = DEFAULT_PORT;
-        }
-    } else {
+      port = parseInt(args.args[0]);
+      if (isNaN(port)) {
         port = DEFAULT_PORT;
+      }
+    } else {
+      port = DEFAULT_PORT;
     }
 
-    // const onStart: HttpServer_WrapperCallback = {
-    //   uri: THIS_URI,
-    //   method: "onStart"
-    // }
+    const onStart: HttpServer_WrapperCallback = {
+      uri: THIS_URI,
+      method: "onStart",
+    };
 
     const serverStartArgs: Args_start = {
       port,
@@ -88,196 +111,210 @@ export class Module extends ModuleBase {
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
-            method: "routeGetRoot"
-          }
+            method: "routeGetRoot",
+          },
         },
         {
           path: "/heartbeat",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
-            method: "routeGetHearbeat"
-          }
+            method: "routeGetHearbeat",
+          },
         },
         {
           path: "/agent/tasks",
           httpMethod: HttpServer_HttpMethod.POST,
           handler: {
             uri: THIS_URI,
-            method: "routePostAgentTasks"
-          }
+            method: "routePostAgentTasks",
+          },
         },
         {
           path: "/agent/tasks",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
-            method: "routeGetAgentTasks"
-          }
+            method: "routeGetAgentTasks",
+          },
         },
         {
           path: "/agent/tasks/:task_id",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
-            method: "routeGetAgentTasksById"
-          }
+            method: "routeGetAgenonStarttTasksById",
+          },
         },
         {
           path: "/agent/tasks/:task_id/steps",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
-            method: "routeGetAgentTasksByIdSteps"
-          }
+            method: "routeGetAgentTasksByIdSteps",
+          },
         },
         {
           path: "/agent/tasks/:task_id/steps",
           httpMethod: HttpServer_HttpMethod.POST,
           handler: {
             uri: THIS_URI,
-            method: "routePostAgentTasksByIdSteps"
-          }
+            method: "routePostAgentTasksByIdSteps",
+          },
         },
         {
           path: "/agent/tasks/:task_id/steps/:step_id",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
-            method: "routeGetAgentTasksByIdStepsById"
-          }
+            method: "routeGetAgentTasksByIdStepsById",
+          },
         },
         {
           path: "/agent/tasks/:task_id/artifacts",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
-            method: "routeGetAgentTasksByIdArtifacts"
-          }
+            method: "routeGetAgentTasksByIdArtifacts",
+          },
         },
         {
           path: "/agent/tasks/:task_id/artifacts",
           httpMethod: HttpServer_HttpMethod.POST,
           handler: {
             uri: THIS_URI,
-            method: "routePostAgentTasksByIdArtifacts"
-          }
+            method: "routePostAgentTasksByIdArtifacts",
+          },
         },
         {
           path: "/agent/tasks/:task_id/artifacts/:artifact_id",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
-            method: "routeGetAgentTasksByIdArtifactsById"
-          }
+            method: "routeGetAgentTasksByIdArtifactsById",
+          },
         },
       ],
-      onStart: null
-    }
+      onStart: null,
+    };
 
     const serverStartResult = HttpServer_Module.start(serverStartArgs);
 
     if (!serverStartResult.ok) {
-      throw new Error(serverStartResult.error)
+      throw new Error(serverStartResult.error);
     }
+
+    console.log("Server started on port", port);
 
     return 0;
   }
 
   onStart(args: Args_onStart): boolean {
-    throw new Error("Method not implemented.");
+    // console.log("Server started on port", args);
+
+    return true;
   }
-  
+
   routeGetRoot(args: Args_routeGetRoot): HttpServer_Response {
     return {
       statusCode: 200,
       headers: [
-          {
-              key: "Content-Type",
-              value: "text/plain",
-          },
+        {
+          key: "Content-Type",
+          value: "text/plain",
+        },
       ],
-      data: stringToArrayBuffer("Welcome to the Auto-GPT Forge"),
+      body: stringToArrayBuffer("Welcome to the Auto-GPT Forge"),
     };
   }
-  
+
   routeGetHearbeat(args: Args_routeGetHearbeat): HttpServer_Response {
     return {
       statusCode: 200,
       headers: [
-          {
-              key: "Content-Type",
-              value: "text/plain",
-          },
+        {
+          key: "Content-Type",
+          value: "text/plain",
+        },
       ],
-      data: stringToArrayBuffer("Server is running."),
+      body: stringToArrayBuffer("Server is running."),
     };
   }
-  
+
   routePostAgentTasks(args: Args_routePostAgentTasks): HttpServer_Response {
     if (args.request.body === null) {
-      throw new Error("Request body is null")
+      throw new Error("Request body is null");
     }
 
-    const stepRequestBody: StepRequestBody = JSON.parse(args.request.body);
+    const stepRequestBody: StepRequestBody = parseBufferToJson(
+      args.request.body
+    );
 
     const store = new ProtocolStore();
     const agent = new Agent(store);
 
-    const taskRequestBody: TaskRequestBody = JSON.parse(args.request.body);
-    const createdTask = store.createTask(taskRequestBody)
+    const taskRequestBody: TaskRequestBody = parseBufferToJson(
+      args.request.body
+    );
+    const createdTask = store.createTask(taskRequestBody);
 
     const step = agent.runNextStep(createdTask.task_id, stepRequestBody);
 
     return {
       statusCode: 200,
       headers: [
-          {
-              key: "Content-Type",
-              value: "application/json",
-          },
+        {
+          key: "Content-Type",
+          value: "application/json",
+        },
       ],
-      data: objectToArrayBuffer(step),
+      body: objectToArrayBuffer(step),
     };
   }
-  
+
   routeGetAgentTasks(args: Args_routeGetAgentTasks): HttpServer_Response {
-    const queryParams = args.request.query
-    const page = queryParams.find((param) => param.key === "page")?.value
-    const pageSize = queryParams.find((param) => param.key === "page_size")?.value
+    const queryParams = args.request.query;
+    const page = queryParams.find((param) => param.key === "page")?.value;
+    const pageSize = queryParams.find(
+      (param) => param.key === "page_size"
+    )?.value;
 
     const store = new ProtocolStore();
 
-    const allTasks = store.getTasks()
-    const paginatedTasks = page && pageSize ? 
-      store.paginate(allTasks, parseInt(page), parseInt(pageSize)): allTasks;
+    const allTasks = store.getTasks();
+    const paginatedTasks =
+      page && pageSize
+        ? store.paginate(allTasks, parseInt(page), parseInt(pageSize))
+        : allTasks;
 
     const response = {
       items: paginatedTasks,
       pagination: createPaginationResponse({
         items: allTasks,
         page,
-        pageSize
-      })
-    }
+        pageSize,
+      }),
+    };
 
     return {
       statusCode: 200,
       headers: [
-          {
-              key: "Content-Type",
-              value: "application/json",
-          },
+        {
+          key: "Content-Type",
+          value: "application/json",
+        },
       ],
-      data: objectToArrayBuffer(response),
+      body: objectToArrayBuffer(response),
     };
   }
-  
-  routeGetAgentTasksById(args: Args_routeGetAgentTasksById): HttpServer_Response {
-    const routeParams = args.request.params
-    const task_id = routeParams.find((param) => param.key === "task_id")?.value
 
-    if (!task_id) throw new Error("task_id is required")
+  routeGetAgentTasksById(
+    args: Args_routeGetAgentTasksById
+  ): HttpServer_Response {
+    const routeParams = args.request.params;
+    const task_id = routeParams.find((param) => param.key === "task_id")?.value;
+
+    if (!task_id) throw new Error("task_id is required");
 
     const store = new ProtocolStore();
 
@@ -287,48 +324,58 @@ export class Module extends ModuleBase {
       return {
         statusCode: 404,
         headers: [
-            {
-                key: "Content-Type",
-                value: "application/json",
-            },
+          {
+            key: "Content-Type",
+            value: "application/json",
+          },
         ],
-        data: objectToArrayBuffer({"error": "Task not found"}),
+        body: objectToArrayBuffer({ error: "Task not found" }),
       };
     }
 
     return {
       statusCode: 200,
       headers: [
-          {
-              key: "Content-Type",
-              value: "application/json",
-          },
+        {
+          key: "Content-Type",
+          value: "application/json",
+        },
       ],
-      data: objectToArrayBuffer(task),
+      body: objectToArrayBuffer(task),
     };
   }
-  
-  routeGetAgentTasksByIdSteps(args: Args_routeGetAgentTasksByIdSteps): HttpServer_Response {
-    throw new Error("Method not implemented.");
-  }
-  
-  routePostAgentTasksByIdSteps(args: Args_routePostAgentTasksByIdSteps): HttpServer_Response {
-    throw new Error("Method not implemented.");
-  }
-  
-  routeGetAgentTasksByIdStepsById(args: Args_routeGetAgentTasksByIdStepsById): HttpServer_Response {
-    throw new Error("Method not implemented.");
-  }
-  
-  routeGetAgentTasksByIdArtifacts(args: Args_routeGetAgentTasksByIdArtifacts): HttpServer_Response {
-    const routeParams = args.request.params
-    const task_id = routeParams.find((param) => param.key === "task_id")?.value
 
-    if (!task_id) throw new Error("task_id is required")
+  routeGetAgentTasksByIdSteps(
+    args: Args_routeGetAgentTasksByIdSteps
+  ): HttpServer_Response {
+    throw new Error("Method not implemented.");
+  }
 
-    const queryParams = args.request.query
-    const page = queryParams.find((param) => param.key === "page")?.value
-    const pageSize = queryParams.find((param) => param.key === "page_size")?.value
+  routePostAgentTasksByIdSteps(
+    args: Args_routePostAgentTasksByIdSteps
+  ): HttpServer_Response {
+    throw new Error("Method not implemented.");
+  }
+
+  routeGetAgentTasksByIdStepsById(
+    args: Args_routeGetAgentTasksByIdStepsById
+  ): HttpServer_Response {
+    throw new Error("Method not implemented.");
+  }
+
+  routeGetAgentTasksByIdArtifacts(
+    args: Args_routeGetAgentTasksByIdArtifacts
+  ): HttpServer_Response {
+    const routeParams = args.request.params;
+    const task_id = routeParams.find((param) => param.key === "task_id")?.value;
+
+    if (!task_id) throw new Error("task_id is required");
+
+    const queryParams = args.request.query;
+    const page = queryParams.find((param) => param.key === "page")?.value;
+    const pageSize = queryParams.find(
+      (param) => param.key === "page_size"
+    )?.value;
 
     const store = new ProtocolStore();
 
@@ -338,46 +385,50 @@ export class Module extends ModuleBase {
       return {
         statusCode: 404,
         headers: [
-            {
-                key: "Content-Type",
-                value: "application/json",
-            },
+          {
+            key: "Content-Type",
+            value: "application/json",
+          },
         ],
-        data: objectToArrayBuffer({"error": "Task not found"}),
+        body: objectToArrayBuffer({ error: "Task not found" }),
       };
     }
 
     const allArtifacts = task?.artifacts ?? [];
-    const paginatedArtifacts = page && pageSize ?
-      store.paginate(allArtifacts, parseInt(page), parseInt(pageSize)): allArtifacts;
+    const paginatedArtifacts =
+      page && pageSize
+        ? store.paginate(allArtifacts, parseInt(page), parseInt(pageSize))
+        : allArtifacts;
 
     return {
       statusCode: 200,
       headers: [
-          {
-              key: "Content-Type",
-              value: "application/json",
-          },
+        {
+          key: "Content-Type",
+          value: "application/json",
+        },
       ],
-      data: objectToArrayBuffer({
+      body: objectToArrayBuffer({
         items: paginatedArtifacts,
         pagination: createPaginationResponse({
           items: allArtifacts,
           page,
-          pageSize
-        })
+          pageSize,
+        }),
       }),
     };
   }
-  
-  routePostAgentTasksByIdArtifacts(args: Args_routePostAgentTasksByIdArtifacts): HttpServer_Response {
+
+  routePostAgentTasksByIdArtifacts(
+    args: Args_routePostAgentTasksByIdArtifacts
+  ): HttpServer_Response {
     const body = args.request.body;
 
     if (!body) {
-      throw new Error("Request body is null")
+      throw new Error("Request body is null");
     }
 
-    const data = JSON.parse(body) as {
+    const data = parseBufferToJson(body) as {
       task_id?: string;
       relative_path?: string;
       file?: {
@@ -387,24 +438,24 @@ export class Module extends ModuleBase {
     };
 
     if (!data.task_id) {
-      throw new Error("task_id is required")
+      throw new Error("task_id is required");
     }
 
     if (!data.relative_path) {
-      throw new Error("relative_path is required")
+      throw new Error("relative_path is required");
     }
 
     if (!data.file) {
-      throw new Error("file is required")
+      throw new Error("file is required");
     }
-    
+
     const fileName = data.file.filename ?? uuidv4();
     let filePath: string;
 
     if (data.relative_path.endsWith(fileName)) {
-        filePath = data.relative_path;
+      filePath = data.relative_path;
     } else {
-        filePath = path.join(data.relative_path, fileName);
+      filePath = `${data.relative_path}/${fileName}`;
     }
 
     const workspace = new Workspace();
@@ -415,22 +466,24 @@ export class Module extends ModuleBase {
       taskId: data.task_id,
       fileName,
       relativePath: data.relative_path,
-      agentCreated: true
+      agentCreated: true,
     });
 
     return {
       statusCode: 200,
       headers: [
-          {
-              key: "Content-Type",
-              value: "application/json",
-          },
+        {
+          key: "Content-Type",
+          value: "application/json",
+        },
       ],
-      data: objectToArrayBuffer(artifact),
+      body: objectToArrayBuffer(artifact),
     };
   }
-  
-  routeGetAgentTasksByIdArtifactsById(args: Args_routeGetAgentTasksByIdArtifactsById): HttpServer_Response {
+
+  routeGetAgentTasksByIdArtifactsById(
+    args: Args_routeGetAgentTasksByIdArtifactsById
+  ): HttpServer_Response {
     throw new Error("Method not implemented.");
   }
 }
