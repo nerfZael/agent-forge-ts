@@ -1,4 +1,17 @@
+const textEncoderShims = require("./textEncoder");
+const msgpackShims = require("./msgpack");
+
 const packagesShim = `
+${textEncoderShims}
+
+${msgpackShims}
+
+function msgpackEncodeValue(value) {
+  return {
+    value: Array.from(encode(value)),
+  };
+}
+
 // HACK: This is a hack because undefined, null, and functions are not supported by the JS Engine
 function clean(obj, root = true) {
   if (obj === undefined) {
