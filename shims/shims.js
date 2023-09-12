@@ -12,31 +12,18 @@ function msgpackEncodeValue(value) {
   };
 }
 
-// HACK: This is a hack because undefined, null, and functions are not supported by the JS Engine
-function clean(obj, root = true) {
-  if (obj === undefined) {
-    return root ? "undefined" : undefined;
-  } else if (obj === null) {
-    return root ? "null" : undefined;
-  } else if (Array.isArray(obj)) {
-    return obj.map(x => clean(x, false)).filter(x => x !== undefined);
-  } else if (obj instanceof Error) {
-    return { message: obj.message };
-  } else if (typeof obj === 'function') {
-    return root ? "function" : undefined;
-  } else if (typeof obj !== 'object') {
-    return obj;
+//HACK: remove this once codegen is fixed
+const __old_subinvoke = __wrap_subinvoke;
+__wrap_subinvoke = function (plugin, method, args) {
+  if (Array.isArray(args)) {
+    return __old_subinvoke(plugin, method, args);
+  } else {
+    return __old_subinvoke(plugin, method, clean(args));
   }
+};
 
-  for (let key in obj) {
-    let value = clean(obj[key], false);
-    if (value === undefined) {
-      delete obj[key];
-    } else {
-      obj[key] = value;
-    }
-  }
-  return obj;
+function clean(obj, root = true) {
+  return JSON.parse(JSON.stringify(Array.from(encode(obj))));
 }
 
 const console = {

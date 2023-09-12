@@ -9,9 +9,10 @@
   "scripts": {
     "bundle": "rollup -c",
     "codegen": "polywrap codegen --verbose",
-    "build": "yarn bundle && npx polywrap build --strategy=image --no-codegen && yarn resources",
+    "build": "yarn bundle && npx polywrap build --strategy=image --no-codegen && yarn resources && pwr js build -f bundled/wrap.js",
     "resources": "copyfiles ./prompts.json ./build/",
-    "deploy": "polywrap deploy"
+    "deploy": "pwr deploy",
+    "start": "pwr fs/build"
   },
   "author": "",
   "license": "ISC",
