@@ -9,7 +9,7 @@
   "scripts": {
     "bundle": "rollup -c",
     "codegen": "polywrap codegen --verbose",
-    "build": "yarn bundle && npx polywrap build --strategy=image --no-codegen && yarn resources && pwr js build -f bundled/wrap.js",
+    "build": "pwr js build -f bundled/wrap.js && cp -rf ./wrap.info ./build/wrap.info",
     "resources": "copyfiles ./prompts.json ./build/",
     "deploy": "pwr deploy",
     "start": "pwr fs/build"
