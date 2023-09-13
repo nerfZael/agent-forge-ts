@@ -23,7 +23,9 @@ __wrap_subinvoke = function (plugin, method, args) {
 };
 
 function clean(obj, root = true) {
-  return JSON.parse(JSON.stringify(Array.from(encode(obj))));
+  const x = JSON.stringify(Array.from(encode(obj)));
+  __wrap_debug_log(x);
+  return JSON.parse(x);
 }
 
 const console = {

@@ -225,9 +225,6 @@ export class Module extends ModuleBase {
   }
 
   routePostRoot(args: Args_routePostRoot): HttpServer_Response {
-    console.log(`THIS ROUTE WAS CALLED`);
-    console.log(`BODY: ${args.request.body}`);
-
     return {
       statusCode: 200,
       headers: [

@@ -1,9 +1,6 @@
 export function stringToArrayBuffer(str: string) {
-  const uint8Array = new Uint8Array(str.length);
-  for (var i = 0; i < str.length; i++) {
-    uint8Array[i] = str.charCodeAt(i);
-  }
-  return uint8Array.buffer;
+  const encoder = new TextEncoder();
+  return Uint8Array.from(encoder.encode(str));
 }
 
 export function objectToArrayBuffer(obj: any) {
