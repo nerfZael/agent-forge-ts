@@ -30,8 +30,8 @@ import {
   HttpServer_WrapperCallback,
 } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
-import { Workspace } from "./workspace";
 import { Agent } from "./agent";
+import { InMemoryWorkspace } from "./workspaces";
 
 const createPaginationResponse = (args: {
   items: any[];
@@ -278,7 +278,7 @@ export class Module extends ModuleBase {
     const taskRequestBody: TaskRequestBody = parseBufferToJson(
       args.request.body
     );
-    const createdTask = store.createTask(taskRequestBody);
+    const createdTask = agent.createTask(taskRequestBody);
 
     const step = agent.runNextStep(createdTask.task_id, stepRequestBody);
 
@@ -302,11 +302,12 @@ export class Module extends ModuleBase {
     )?.value;
 
     const store = new ProtocolStore();
+    const agent = new Agent(store);
 
-    const allTasks = store.getTasks();
+    const allTasks = agent.getTasks();
     const paginatedTasks =
       page && pageSize
-        ? store.paginate(allTasks, parseInt(page), parseInt(pageSize))
+        ? ProtocolStore.paginate(allTasks, parseInt(page), parseInt(pageSize))
         : allTasks;
 
     const response = {
@@ -339,8 +340,9 @@ export class Module extends ModuleBase {
     if (!task_id) throw new Error("task_id is required");
 
     const store = new ProtocolStore();
+    const agent = new Agent(store);
 
-    const task = store.getTaskById(task_id);
+    const task = agent.getTaskById(task_id);
 
     if (!task) {
       return {
@@ -400,8 +402,9 @@ export class Module extends ModuleBase {
     )?.value;
 
     const store = new ProtocolStore();
+    const agent = new Agent(store);
 
-    const task = store.getTaskById(task_id);
+    const task = agent.getTaskById(task_id);
 
     if (!task) {
       return {
@@ -419,7 +422,11 @@ export class Module extends ModuleBase {
     const allArtifacts = task?.artifacts ?? [];
     const paginatedArtifacts =
       page && pageSize
-        ? store.paginate(allArtifacts, parseInt(page), parseInt(pageSize))
+        ? ProtocolStore.paginate(
+            allArtifacts,
+            parseInt(page),
+            parseInt(pageSize)
+          )
         : allArtifacts;
 
     return {
@@ -480,11 +487,13 @@ export class Module extends ModuleBase {
       filePath = `${data.relative_path}/${fileName}`;
     }
 
-    const workspace = new Workspace();
+    const workspace = new InMemoryWorkspace();
     workspace.write(data.task_id, filePath, data.file.file);
 
     const store = new ProtocolStore();
-    const artifact = store.createArtifact({
+    const agent = new Agent(store);
+
+    const artifact = agent.createArtifact({
       taskId: data.task_id,
       fileName,
       relativePath: data.relative_path,
