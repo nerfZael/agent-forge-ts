@@ -8,9 +8,13 @@ import {
   TaskRequestBody,
 } from "./protocolTypes";
 import { uuidv4 } from "./utils";
+import { InMemoryFile, InMemoryWorkspace } from "./workspaces";
 
 export class Agent {
-  constructor(private _store: ProtocolStore) {}
+  constructor(
+    private _store: ProtocolStore,
+    private _workspace?: InMemoryWorkspace
+  ) {}
 
   runNextStep(taskId: string, stepRequest: StepRequestBody) {
     const task = this.getTaskById(taskId);
@@ -35,8 +39,8 @@ export class Agent {
       additional_input: taskRequest.additional_input,
       artifacts: [],
       steps: [],
-      created_at: Date.now().toString(),
-      modified_at: Date.now().toString(),
+      created_at: "1694726426746",
+      modified_at: "1694726426746",
     };
 
     this.addTask(task);
@@ -74,8 +78,8 @@ export class Agent {
 
   createStep(taskId: string, stepArgs: StepRequestBody, isLast: boolean) {
     const step: Step = {
-      created_at: Date.now().toString(),
-      modified_at: Date.now().toString(),
+      created_at: "1694726426746",
+      modified_at: "1694726426746",
       task_id: taskId,
       step_id: uuidv4(),
       name: stepArgs.name,
@@ -135,23 +139,54 @@ export class Agent {
 
   createArtifact(args: {
     taskId: string;
-    fileName: string;
+    file: { file: InMemoryFile; name?: string };
     relativePath: string;
-    agentCreated: boolean;
   }) {
+    const fileName = args.file.name ?? uuidv4();
+    const data = args.file.file.read();
+
+    let filePath: string;
+    if (args.relativePath.endsWith(fileName)) {
+      filePath = args.relativePath;
+    } else {
+      filePath = `${args.relativePath}/${fileName}`;
+    }
+
+    this._workspace?.writeFileSync(`${args.taskId}/${filePath}`, data);
+
     const artifact: Artifact = {
       artifact_id: uuidv4(),
-      agent_created: args.agentCreated,
-      created_at: Date.now().toString(),
-      modified_at: Date.now().toString(),
+      agent_created: false,
+      created_at: "1694726426746",
+      modified_at: "1694726426746",
       relative_path: args.relativePath,
-      file_name: args.fileName,
+      file_name: fileName,
     };
 
     this.addArtifactToTask(args.taskId, artifact);
 
     return artifact;
   }
+
+  // createArtifact(args: {
+  //   taskId: string;
+  //   fileName: string;
+  //   relativePath: string;
+  //   agentCreated: boolean;
+  // }) {
+  //   const artifact: Artifact = {
+  //     artifact_id: uuidv4(),
+  //     agent_created: args.agentCreated,
+  //     created_at: "1694726426746",
+  //     modified_at: "1694726426746",
+  //     relative_path: args.relativePath,
+  //     file_name: args.fileName,
+  //   };
+
+  //   this.addArtifactToTask(args.taskId, artifact);
+
+  //   return artifact;
+  // }
 
   getArtifactById(taskId: string, artifactId: string): Artifact | undefined {
     const task = this.getTaskById(taskId);

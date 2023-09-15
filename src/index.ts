@@ -19,7 +19,6 @@ import {
   Args_routeGetAgentTasksByIdStepsById,
   Args_routeGetHearbeat,
   Args_routeGetRoot,
-  Args_routePostRoot,
   Args_routePostAgentTasks,
   Args_routePostAgentTasksByIdArtifacts,
   Args_routePostAgentTasksByIdSteps,
@@ -28,10 +27,11 @@ import {
   HttpServer_Module,
   HttpServer_Response,
   HttpServer_WrapperCallback,
+  Multipart_Module,
 } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
 import { Agent } from "./agent";
-import { InMemoryWorkspace } from "./workspaces";
+import { InMemoryFile, InMemoryWorkspace } from "./workspaces";
 
 const createPaginationResponse = (args: {
   items: any[];
@@ -109,14 +109,6 @@ export class Module extends ModuleBase {
       routes: [
         {
           path: "/",
-          httpMethod: HttpServer_HttpMethod.POST,
-          handler: {
-            uri: THIS_URI,
-            method: "routePostRoot",
-          },
-        },
-        {
-          path: "/",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
@@ -152,7 +144,7 @@ export class Module extends ModuleBase {
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
             uri: THIS_URI,
-            method: "routeGetAgenonStarttTasksById",
+            method: "routeGetAgentTasksById",
           },
         },
         {
@@ -222,19 +214,6 @@ export class Module extends ModuleBase {
     console.log(`Server started`);
 
     return true;
-  }
-
-  routePostRoot(args: Args_routePostRoot): HttpServer_Response {
-    return {
-      statusCode: 200,
-      headers: [
-        {
-          key: "Content-Type",
-          value: "text/plain",
-        },
-      ],
-      body: stringToArrayBuffer("Welcome to the Auto-GPT Forge"),
-    };
   }
 
   routeGetRoot(args: Args_routeGetRoot): HttpServer_Response {
@@ -454,51 +433,83 @@ export class Module extends ModuleBase {
     const body = args.request.body;
 
     if (!body) {
-      throw new Error("Request body is null");
+      throw new Error("Request body is required");
     }
 
-    const data = parseBufferToJson(body) as {
-      task_id?: string;
-      relative_path?: string;
-      file?: {
-        file: ArrayBuffer;
-        filename?: string;
-      };
-    };
+    const headers = args.request.headers.map((header) => ({
+      key: header.key,
+      value: header.value,
+    }));
 
-    if (!data.task_id) {
-      throw new Error("task_id is required");
-    }
+    console.log("BEFORE GETFILES");
 
-    if (!data.relative_path) {
-      throw new Error("relative_path is required");
-    }
-
-    if (!data.file) {
-      throw new Error("file is required");
-    }
-
-    const fileName = data.file.filename ?? uuidv4();
-    let filePath: string;
-
-    if (data.relative_path.endsWith(fileName)) {
-      filePath = data.relative_path;
-    } else {
-      filePath = `${data.relative_path}/${fileName}`;
-    }
-
-    const workspace = new InMemoryWorkspace();
-    workspace.write(data.task_id, filePath, data.file.file);
-
-    const store = new ProtocolStore();
-    const agent = new Agent(store);
-
-    const artifact = agent.createArtifact({
-      taskId: data.task_id,
-      fileName,
-      relativePath: data.relative_path,
-      agentCreated: true,
+    const filesResult = Multipart_Module.getFiles({
+      headers,
+      body: body as any,
     });
+
+    console.log("AFTER GETFILES");
+
+    if (!filesResult.ok) {
+      throw new Error(filesResult.error);
+    }
+
+    const files = filesResult.value;
+
+    if (!files || files.length === 0) {
+      throw new Error("No files found in request");
+    }
+
+    files.map((file) => {
+      console.log(file.name);
+      console.log(file.content.byteLength);
+    });
+
+    // const data = parseBufferToJson(body) as {
+    //   task_id?: string;
+    //   relative_path?: string;
+    //   file?: {
+    //     file: ArrayBuffer;
+    //     filename?: string;
+    //   };
+    // };
+
+    // if (!data.task_id) {
+    //   throw new Error("task_id is required");
+    // }
+
+    // if (!data.relative_path) {
+    //   throw new Error("relative_path is required");
+    // }
+
+    // if (!data.file) {
+    //   throw new Error("file is required");
+    // }
+
+    // const fileName = data.file.filename ?? uuidv4();
+    // let filePath: string;
+
+    // if (data.relative_path.endsWith(fileName)) {
+    //   filePath = data.relative_path;
+    // } else {
+    //   filePath = `${data.relative_path}/${fileName}`;
+    // }
+
+    // const workspace = new InMemoryWorkspace();
+    // workspace.write(data.task_id, filePath, data.file.file);
+
+    // const store = new ProtocolStore();
+    // const workspace = new InMemoryWorkspace();
+    // const agent = new Agent(store, workspace);
+
+    // const artifact = agent.createArtifact({
+    //   taskId: data.task_id,
+    //   relativePath: data.relative_path,
+    //   file: {
+    //     file: new InMemoryFile("fileeeeee"),
+    //     name: "john.txt",
+    //   },
+    // });
 
     return {
       statusCode: 200,
@@ -508,7 +519,7 @@ export class Module extends ModuleBase {
           value: "application/json",
         },
       ],
-      body: objectToArrayBuffer(artifact),
+      body: objectToArrayBuffer({}),
     };
   }
 

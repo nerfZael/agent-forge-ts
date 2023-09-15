@@ -1,3 +1,4 @@
+import { stringToArrayBuffer } from "./utils";
 import { KeyValueStore_Module } from "./wrap";
 
 export enum StoreKey {
@@ -47,15 +48,12 @@ export class ProtocolStore {
 
   private encode(value: any) {
     const json = JSON.stringify(value);
-    const uint8Array = new Uint8Array(json.length);
-    for (let i = 0; i < json.length; i++) {
-      uint8Array[i] = json.charCodeAt(i);
-    }
-    return uint8Array.buffer;
+    return stringToArrayBuffer(json);
   }
 
   private decode<T>(arrayBuffer: ArrayBuffer): T {
     const uint8Array = new Uint8Array(arrayBuffer);
-    return JSON.parse(String.fromCharCode.apply(null, uint8Array));
+    const textDecoder = new TextDecoder();
+    return JSON.parse(textDecoder.decode(uint8Array));
   }
 }

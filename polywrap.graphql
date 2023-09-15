@@ -1,6 +1,7 @@
 #import { Module, Response, KeyValuePair, Request } into HttpServer from "https/http.wrappers.dev/u/test/http-server"
 #import * into KeyValueStore from "https/http.wrappers.dev/u/test/key-value-store"
 #import * into Http from "wrapscan.io/polywrap/http@1.0"
+#import * into Multipart from "wrap://https/http.wrappers.dev/u/test/multipart"
 
 type Module {
   main(args: [String!]!): Int32!
@@ -9,7 +10,6 @@ type Module {
 
   onStart: Boolean!
 
-  routePostRoot(request: HttpServer_Request!): HttpServer_Response!
   routeGetRoot(request: HttpServer_Request!): HttpServer_Response!
   routeGetHearbeat(request: HttpServer_Request!): HttpServer_Response!
   routePostAgentTasks(request: HttpServer_Request!): HttpServer_Response!

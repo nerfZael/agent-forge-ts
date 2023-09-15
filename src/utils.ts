@@ -9,13 +9,8 @@ export function objectToArrayBuffer(obj: any) {
 
 export function parseBufferToJson(buffer: ArrayBuffer) {
   const uint8Array = new Uint8Array(buffer);
-  let jsonString = "";
-
-  uint8Array.forEach((byte) => {
-    jsonString += String.fromCharCode(byte);
-  });
-
-  return JSON.parse(jsonString);
+  const textDecoder = new TextDecoder();
+  return JSON.parse(textDecoder.decode(uint8Array));
 }
 
 export function uuidv4(): string {
