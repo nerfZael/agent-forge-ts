@@ -81,7 +81,7 @@ function utf8EncodeJs(str, output, outputOffset) {
 // https://nodejs.org/api/globals.html#textencoder
 var sharedTextEncoder = new TextEncoder();
 // This threshold should be determined by benchmarking, which might vary in engines and input data.
-var TEXT_ENCODER_THRESHOLD = 50;
+var TEXT_ENCODER_THRESHOLD = 500000;
 function utf8EncodeTE(str, output, outputOffset) {
   sharedTextEncoder.encodeInto(str, output.subarray(outputOffset));
 }

@@ -1,6 +1,9 @@
+import { ChatCompletionRequestMessage } from "openai";
+
 export interface State {
   index: number;
   finished: boolean;
+  chat: ChatCompletionRequestMessage[];
 }
 
 export const encodeState = (state: State): string => {

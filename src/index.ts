@@ -1,4 +1,4 @@
-import { DEFAULT_PORT, THIS_URI } from "./constants";
+import { DEFAULT_PORT, OPENAI_API_KEY, THIS_URI } from "./constants";
 import { Prompts } from "./prompts";
 import { StepRequestBody, TaskRequestBody } from "./protocolTypes";
 import { State, decodeState, encodeState } from "./state";
@@ -7,7 +7,6 @@ import {
   objectToArrayBuffer,
   parseBufferToJson,
   stringToArrayBuffer,
-  uuidv4,
 } from "./utils";
 import {
   Args_onStart,
@@ -31,7 +30,7 @@ import {
 } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
 import { Agent } from "./agent";
-import { InMemoryFile, InMemoryWorkspace } from "./workspaces";
+import { OpenAI } from "./llm";
 
 const createPaginationResponse = (args: {
   items: any[];
@@ -53,18 +52,15 @@ export class Module extends ModuleBase {
     const state: State = {
       index: 0,
       finished: false,
+      chat: [
+        { role: "system", content: "You are a helpful assistant" },
+      ],
     };
 
-    const prompts = new Prompts();
-
-    const result = {
+    return this.runStep({
       state: encodeState(state),
-      output: `My goal is: ${args.goal}, My prompt is: ${
-        prompts.list()[0].value
-      }`,
-    };
-
-    return result;
+      input: args.goal,
+    });
   }
 
   runStep(args: Args_runStep): Step {
@@ -72,22 +68,44 @@ export class Module extends ModuleBase {
 
     state.index++;
 
-    if (state.index > 5) {
+    if (state.index > 3) {
       state.finished = true;
-
-      return {
-        state: encodeState(state),
-        output: "Agent says: I finished",
-      };
     }
+
+    const openai = new OpenAI(
+      OPENAI_API_KEY,
+      "gpt-3.5-turbo",
+      4000,
+      1000
+    );
+
+    args.input && state.chat.push({ role: "user", content: args.input });
+
+    const response = openai.getResponse(state.chat);
+
+    state.chat.push({ role: "assistant", content: response.content });
+
+    console.log(response);
 
     return {
       state: encodeState(state),
-      output: `Agent says: ${state.index} step`,
+      output: response.content ?? "No response",
     };
   }
 
   main(args: Args_main): number {
+    if (args.args.length > 0) {
+      var step = this.run({goal: args.args[0]});
+      console.log("Agent:", step.output);
+
+      while(!decodeState(step.state).finished) {
+        step = this.runStep({state: step.state, input: null});
+        console.log("Agent:", step.output);
+      }
+
+      return 0;
+    } 
+
     let port: number;
     if (args.args.length > 0) {
       port = parseInt(args.args[0]);

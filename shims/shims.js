@@ -28,8 +28,8 @@ function clean(obj, root = true) {
 }
 
 const console = {
-  log: function(str) {
-    __wrap_debug_log(str);
+  log: function(...args) {
+    __wrap_debug_log(args.map((arg) => typeof arg === "string" ? arg : JSON.stringify(arg, null, 2)).join(" "));
   },
 };
 
