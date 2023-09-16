@@ -2,6 +2,7 @@
 #import * into KeyValueStore from "https/http.wrappers.dev/u/test/key-value-store"
 #import * into Http from "wrapscan.io/polywrap/http@1.0"
 #import * into Multipart from "wrap://https/http.wrappers.dev/u/test/multipart"
+#import * into InvocationContext from "wrap://https/http.wrappers.dev/u/test/invocation-context"
 
 type Module {
   main(args: [String!]!): Int32!
