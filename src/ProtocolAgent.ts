@@ -8,12 +8,14 @@ import {
   TaskRequestBody,
 } from "./protocolTypes";
 import { uuidv4 } from "./utils";
-import { InMemoryWorkspace } from "./workspaces";
+import { InMemoryFile, InMemoryWorkspace } from "./workspaces";
+import { Agent } from "./Agent";
 
-export class Agent {
+export class ProtocolAgent {
   constructor(
+    private _agent: Agent,
     private _store: ProtocolStore,
-    private _workspace?: InMemoryWorkspace
+    private _workspace?: InMemoryWorkspace,
   ) {}
 
   runNextStep(taskId: string, stepRequest: StepRequestBody) {
@@ -23,12 +25,15 @@ export class Agent {
       throw new Error(`Task with id '${taskId}' not found`);
     }
 
-    const step = this.createStep(taskId, stepRequest, true);
+    const step = this.createStep(taskId, stepRequest, false);
+    
+    const response = this._agent.runStep(step.input);
+
     return this.updateStep(taskId, step.step_id, {
       ...step,
       status: Status.completed,
-      output: "Primary feedback...",
-      additional_output: "Additional feedback...",
+      output: response.output ?? null,
+      additional_output: "",
     });
   }
 
@@ -139,11 +144,11 @@ export class Agent {
 
   createArtifact(args: {
     taskId: string;
-    file: { data: string; name?: string };
+    file: { file: InMemoryFile; name?: string };
     relativePath: string;
   }) {
     const fileName = args.file.name ?? uuidv4();
-    const data = args.file.data;
+    const data = args.file.file.read();
 
     let filePath: string;
     if (args.relativePath.endsWith(fileName)) {
@@ -167,6 +172,26 @@ export class Agent {
 
     return artifact;
   }
+
+  // createArtifact(args: {
+  //   taskId: string;
+  //   fileName: string;
+  //   relativePath: string;
+  //   agentCreated: boolean;
+  // }) {
+  //   const artifact: Artifact = {
+  //     artifact_id: uuidv4(),
+  //     agent_created: args.agentCreated,
+  //     created_at: "1694726426746",
+  //     modified_at: "1694726426746",
+  //     relative_path: args.relativePath,
+  //     file_name: args.fileName,
+  //   };
+
+  //   this.addArtifactToTask(args.taskId, artifact);
+
+  //   return artifact;
+  // }
 
   getArtifactById(taskId: string, artifactId: string): Artifact | undefined {
     const task = this.getTaskById(taskId);

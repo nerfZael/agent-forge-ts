@@ -3,6 +3,7 @@ import { KeyValueStore_Module } from "./wrap";
 
 export enum StoreKey {
   Tasks = "tasks",
+  Chat = "chat",
 }
 
 export interface PaginationOpts {
@@ -19,7 +20,7 @@ export class ProtocolStore {
     return items.slice(start, end);
   }
 
-  get<T>(key: StoreKey) {
+  get<T>(key: StoreKey): T | null {
     const result = this._store.get({ key });
 
     if (!result.ok) {

@@ -1,6 +1,5 @@
-import { DEFAULT_PORT, OPENAI_API_KEY } from "./constants";
+import { DEFAULT_PORT } from "./constants";
 import { StepRequestBody, TaskRequestBody } from "./protocolTypes";
-import { State, decodeState, encodeState } from "./state";
 import { ProtocolStore } from "./store";
 import {
   objectToArrayBuffer,
@@ -28,79 +27,33 @@ import {
   InvocationContext_Module,
 } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
-import { Agent } from "./agent";
-import { OpenAI } from "./llm";
 import { InMemoryWorkspace } from "./workspaces";
 import { processMultipartRequest } from "./multipart";
-
-const createPaginationResponse = (args: {
-  items: any[];
-  page?: string;
-  pageSize?: string;
-}) => {
-  const { items, page, pageSize } = args;
-
-  return {
-    total: items.length,
-    pages: pageSize ? items.length / parseInt(pageSize) : 1,
-    current: parseInt(page ?? "1"),
-    pageSize: pageSize ? parseInt(pageSize) : items.length,
-  };
-};
+import { Agent } from "./Agent";
+import { ProtocolAgent } from "./ProtocolAgent";
 
 export class Module extends ModuleBase {
-  run(args: Args_run): Step {
-    const state: State = {
-      index: 0,
-      finished: false,
-      chat: [
-        { role: "system", content: "You are a helpful assistant" },
-      ],
-    };
+  private readonly agent: Agent; 
+  constructor() {
+    super();
+    this.agent = new Agent(new ProtocolStore(), new InMemoryWorkspace());
+  }
 
-    return this.runStep({
-      state: encodeState(state),
-      input: args.goal,
-    });
+  run(args: Args_run): Step {
+    return this.agent.run(args.goal);
   }
 
   runStep(args: Args_runStep): Step {
-    const state = decodeState(args.state);
-
-    state.index++;
-
-    if (state.index > 3) {
-      state.finished = true;
-    }
-
-    const openai = new OpenAI(
-      OPENAI_API_KEY,
-      "gpt-3.5-turbo",
-      4000,
-      1000
-    );
-
-    args.input && state.chat.push({ role: "user", content: args.input });
-
-    const response = openai.getResponse(state.chat);
-
-    state.chat.push({ role: "assistant", content: response.content });
-
-    console.log(response);
-
-    return {
-      state: encodeState(state),
-      output: response.content ?? "No response",
-    };
+    return this.agent.runStep(args.input);
   }
 
   main(args: Args_main): number {
     if (args.args.length > 0) {
-      var step = this.run({goal: args.args[0]});
+      var step = this.agent.run(args.args[0]);
       console.log("Agent:", step.output);
 
-      while(!decodeState(step.state).finished) {
-        step = this.runStep({state: step.state, input: null});
+      while(!step.isLast) {
+        step = this.agent.runStep(null);
         console.log("Agent:", step.output);
       }
 
@@ -271,7 +224,7 @@ export class Module extends ModuleBase {
     );
 
     const store = new ProtocolStore();
-    const agent = new Agent(store);
+    const agent = new ProtocolAgent(this.agent, store);
 
     const taskRequestBody: TaskRequestBody = parseBufferToJson(
       args.request.body
@@ -280,16 +233,7 @@ export class Module extends ModuleBase {
 
     const step = agent.runNextStep(createdTask.task_id, stepRequestBody);
 
-    return {
-      statusCode: 200,
-      headers: [
-        {
-          key: "Content-Type",
-          value: "application/json",
-        },
-      ],
-      body: objectToArrayBuffer(step),
-    };
+    return response.ok().json(step);
   }
 
   routeGetAgentTasks(args: Args_routeGetAgentTasks): HttpServer_Response {
@@ -300,7 +244,7 @@ export class Module extends ModuleBase {
     )?.value;
 
     const store = new ProtocolStore();
-    const agent = new Agent(store);
+    const agent = new ProtocolAgent(this.agent, store);
 
     const allTasks = agent.getTasks();
     const paginatedTasks =
@@ -308,25 +252,14 @@ export class Module extends ModuleBase {
         ? ProtocolStore.paginate(allTasks, parseInt(page), parseInt(pageSize))
         : allTasks;
 
-    const response = {
+    return response.ok().json({
       items: paginatedTasks,
       pagination: createPaginationResponse({
         items: allTasks,
         page,
         pageSize,
       }),
-    };
-
-    return {
-      statusCode: 200,
-      headers: [
-        {
-          key: "Content-Type",
-          value: "application/json",
-        },
-      ],
-      body: objectToArrayBuffer(response),
-    };
+    });
   }
 
   routeGetAgentTasksById(
@@ -338,33 +271,16 @@ export class Module extends ModuleBase {
     if (!task_id) throw new Error("task_id is required");
 
     const store = new ProtocolStore();
-    const agent = new Agent(store);
+    const agent = new ProtocolAgent(this.agent, store);
 
     const task = agent.getTaskById(task_id);
 
     if (!task) {
-      return {
-        statusCode: 404,
-        headers: [
-          {
-            key: "Content-Type",
-            value: "application/json",
-          },
-        ],
-        body: objectToArrayBuffer({ error: "Task not found" }),
-      };
+      return response.notFound();
     }
 
-    return {
-      statusCode: 200,
-      headers: [
-        {
-          key: "Content-Type",
-          value: "application/json",
-        },
-      ],
-      body: objectToArrayBuffer(task),
-    };
+    return response.ok()
+      .json(task);
   }
 
   routeGetAgentTasksByIdSteps(
@@ -376,7 +292,25 @@ export class Module extends ModuleBase {
   routePostAgentTasksByIdSteps(
     args: Args_routePostAgentTasksByIdSteps
   ): HttpServer_Response {
-    throw new Error("Method not implemented.");
+    if (args.request.body === null) {
+      throw new Error("Request body is null");
+    }
+
+    const stepRequestBody: StepRequestBody = parseBufferToJson(
+      args.request.body
+    );
+
+    const store = new ProtocolStore();
+    const agent = new ProtocolAgent(this.agent, store);
+
+    const task = agent.getTaskById(args.request.params.find((param) => param.key === "task_id")?.value ?? "");
+    if (!task) {
+      return response.notFound();
+    }
+
+    const step = agent.runNextStep(task.task_id, stepRequestBody);
+
+    return response.ok().json(step);
   }
 
   routeGetAgentTasksByIdStepsById(
@@ -400,7 +334,7 @@ export class Module extends ModuleBase {
     )?.value;
 
     const store = new ProtocolStore();
-    const agent = new Agent(store);
+    const agent = new ProtocolAgent(this.agent, store);
 
     const task = agent.getTaskById(task_id);
 
@@ -566,5 +500,58 @@ export class Module extends ModuleBase {
     return thisUri;
   }
 }
+
+const response = {
+  notFound: (): HttpServer_Response => {
+    return {
+      statusCode: 404,
+      headers: [],
+      body: null,
+    };
+  },
+  ok: () => {
+    return {
+      text: (body: string): HttpServer_Response => {
+        return {
+          statusCode: 200,
+          headers: [
+            {
+              key: "Content-Type",
+              value: "text/html; charset=utf-8",
+            },
+          ],
+          body: stringToArrayBuffer(body),
+        };
+      },
+      json: <T>(body: T): HttpServer_Response => {
+        return {
+          statusCode: 200,
+          headers: [
+            {
+              key: "Content-Type",
+              value: "application/json",
+            },
+          ],
+          body: objectToArrayBuffer(body),
+        };
+      }
+    }
+  }
+};
+
+function createPaginationResponse(args: {
+  items: any[];
+  page?: string;
+  pageSize?: string;
+}) {
+  const { items, page, pageSize } = args;
+
+  return {
+    total: items.length,
+    pages: pageSize ? items.length / parseInt(pageSize) : 1,
+    current: parseInt(page ?? "1"),
+    pageSize: pageSize ? parseInt(pageSize) : items.length,
+  };
+};
 
 let thisUri: string | null = null;
