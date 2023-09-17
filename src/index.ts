@@ -1,4 +1,4 @@
-import { DEFAULT_PORT } from "./constants";
+import { DEFAULT_PORT, THIS_URL } from "./constants";
 import { StepRequestBody, TaskRequestBody } from "./protocolTypes";
 import { ProtocolStore } from "./store";
 import {
@@ -22,11 +22,12 @@ import {
   Args_routePostAgentTasksByIdSteps,
   Args_run, Args_runStep,
   Args_start,
+  Args_routeInfo,
   HttpServer_HttpMethod,
   HttpServer_Module,
   HttpServer_Response,
   HttpServer_WrapperCallback,
-  ModuleBase,
+  Http_Module,
   InvocationContext_Module,
   Step
 } from "./wrap";
@@ -82,6 +83,14 @@ export class Module extends ModuleBase {
       port,
       requestTimeout: 10000,
       routes: [
+        {
+          path: "/info",
+          httpMethod: HttpServer_HttpMethod.GET,
+          handler: {
+            uri: this.uri,
+            method: "routeInfo",
+          },
+        },
         {
           path: "/",
           httpMethod: HttpServer_HttpMethod.GET,
@@ -492,6 +501,32 @@ export class Module extends ModuleBase {
         content
       }),
     };
+  }
+
+  routeGetAgentTasksByIdArtifactsById(
+    args: Args_routeGetAgentTasksByIdArtifactsById
+  ): HttpServer_Response {
+    throw new Error("Method not implemented.");
+  }
+
+  routeInfo(
+    args: Args_routeInfo
+  ): HttpServer_Response {
+    let uri = this.uri.slice("wrap://https/".length);
+    console.log("URI", uri);
+    let resp = Http_Module.get({ url: `https://${uri}/cat?arg=wrap.info`, request: null }).value;
+    console.log(resp);
+    if (!resp?.headers) {
+      throw new Error("No headers returned!");
+    }
+    const headers = String.fromCharCode.apply(String, (resp.headers as any)[1]);
+    let cid = headers.substring(headers.indexOf("wrap://ipfs/Qm"))
+    cid = cid.slice("wrap://ipfs/".length);
+
+    return response.ok().json({
+      cid,
+      uri: this.uri
+    });
   }
 
   get uri(): string {
