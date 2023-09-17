@@ -1,5 +1,4 @@
-import { DEFAULT_PORT, OPENAI_API_KEY, THIS_URI } from "./constants";
-import { Prompts } from "./prompts";
+import { DEFAULT_PORT, OPENAI_API_KEY } from "./constants";
 import { StepRequestBody, TaskRequestBody } from "./protocolTypes";
 import { State, decodeState, encodeState } from "./state";
 import { ProtocolStore } from "./store";
@@ -26,6 +25,7 @@ import {
   HttpServer_Module,
   HttpServer_Response,
   HttpServer_WrapperCallback,
+  InvocationContext_Module,
   Multipart_Module,
 } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
@@ -117,7 +117,7 @@ export class Module extends ModuleBase {
     }
 
     const onStart: HttpServer_WrapperCallback = {
-      uri: THIS_URI,
+      uri: this.uri,
       method: "onStart",
     };
 
@@ -129,7 +129,7 @@ export class Module extends ModuleBase {
           path: "/",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routeGetRoot",
           },
         },
@@ -137,7 +137,7 @@ export class Module extends ModuleBase {
           path: "/heartbeat",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routeGetHearbeat",
           },
         },
@@ -145,7 +145,7 @@ export class Module extends ModuleBase {
           path: "/agent/tasks",
           httpMethod: HttpServer_HttpMethod.POST,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routePostAgentTasks",
           },
         },
@@ -153,7 +153,7 @@ export class Module extends ModuleBase {
           path: "/agent/tasks",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routeGetAgentTasks",
           },
         },
@@ -161,7 +161,7 @@ export class Module extends ModuleBase {
           path: "/agent/tasks/:task_id",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routeGetAgentTasksById",
           },
         },
@@ -169,7 +169,7 @@ export class Module extends ModuleBase {
           path: "/agent/tasks/:task_id/steps",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routeGetAgentTasksByIdSteps",
           },
         },
@@ -177,7 +177,7 @@ export class Module extends ModuleBase {
           path: "/agent/tasks/:task_id/steps",
           httpMethod: HttpServer_HttpMethod.POST,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routePostAgentTasksByIdSteps",
           },
         },
@@ -185,7 +185,7 @@ export class Module extends ModuleBase {
           path: "/agent/tasks/:task_id/steps/:step_id",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routeGetAgentTasksByIdStepsById",
           },
         },
@@ -193,7 +193,7 @@ export class Module extends ModuleBase {
           path: "/agent/tasks/:task_id/artifacts",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routeGetAgentTasksByIdArtifacts",
           },
         },
@@ -201,7 +201,7 @@ export class Module extends ModuleBase {
           path: "/agent/tasks/:task_id/artifacts",
           httpMethod: HttpServer_HttpMethod.POST,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routePostAgentTasksByIdArtifacts",
           },
         },
@@ -209,7 +209,7 @@ export class Module extends ModuleBase {
           path: "/agent/tasks/:task_id/artifacts/:artifact_id",
           httpMethod: HttpServer_HttpMethod.GET,
           handler: {
-            uri: THIS_URI,
+            uri: this.uri,
             method: "routeGetAgentTasksByIdArtifactsById",
           },
         },
@@ -546,4 +546,20 @@ export class Module extends ModuleBase {
   ): HttpServer_Response {
     throw new Error("Method not implemented.");
   }
+
+  get uri(): string {
+    if (thisUri) {
+      return thisUri;
+    }
+
+    let context = InvocationContext_Module.getOwnContext({});
+    if (!context.ok || !context.value) {
+      throw new Error(context.error);
+    }
+
+    thisUri = context.value.originUri;
+    return thisUri;
+  }
 }
+
+let thisUri: string | null = null;
