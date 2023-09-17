@@ -491,7 +491,7 @@ export class Module extends ModuleBase {
   routeInfo(
     args: Args_routeInfo
   ): HttpServer_Response {
-    let uri = THIS_URL.slice("https/".length);
+    let uri = this.uri.slice("wrap://https/".length);
     console.log("URI", uri);
     let resp = Http_Module.get({ url: `https://${uri}/cat?arg=wrap.info`, request: null }).value;
     console.log(resp);
