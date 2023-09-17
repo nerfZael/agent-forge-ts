@@ -7,6 +7,7 @@ import {
   stringToArrayBuffer,
 } from "./utils";
 import {
+  Args_main,
   Args_onStart,
   Args_routeGetAgentTasks,
   Args_routeGetAgentTasksById,
@@ -19,14 +20,16 @@ import {
   Args_routePostAgentTasks,
   Args_routePostAgentTasksByIdArtifacts,
   Args_routePostAgentTasksByIdSteps,
+  Args_run, Args_runStep,
   Args_start,
   HttpServer_HttpMethod,
   HttpServer_Module,
   HttpServer_Response,
   HttpServer_WrapperCallback,
+  ModuleBase,
   InvocationContext_Module,
+  Step
 } from "./wrap";
-import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
 import { InMemoryWorkspace } from "./workspaces";
 import { processMultipartRequest } from "./multipart";
 import { Agent } from "./Agent";
@@ -419,8 +422,11 @@ export class Module extends ModuleBase {
 
     const file = Object.values(files)[0]
 
-    const agent = new Agent(new ProtocolStore(), new InMemoryWorkspace());
-    const artifact = agent.createArtifact({
+    const protocolStore = new ProtocolStore();
+    const workspace = new InMemoryWorkspace();
+    const agent = new Agent(protocolStore, workspace);
+    const protocolAgent = new ProtocolAgent(agent, protocolStore, workspace);
+    const artifact = protocolAgent.createArtifact({
       taskId,
       file: {
         data: file.data,
@@ -452,10 +458,12 @@ export class Module extends ModuleBase {
     const artifact_id = routeParams.find((param) => param.key === "artifact_id")?.value;
     if (!artifact_id) throw new Error("artifact_id is required");
 
+    const protocolStore = new ProtocolStore();
     const workspace = new InMemoryWorkspace();
-    const agent = new Agent(new ProtocolStore(), workspace);
+    const agent = new Agent(protocolStore, workspace);
+    const protocolAgent = new ProtocolAgent(agent, protocolStore, workspace);
 
-    const artifact = agent.getArtifactById(task_id, artifact_id);
+    const artifact = protocolAgent.getArtifactById(task_id, artifact_id);
 
     if (!artifact) {
       return {
