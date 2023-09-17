@@ -1,0 +1,2 @@
+#import * into Logging from "ens/wraps.eth:logging@1.0.0"
+#import * into Agent from "wrap://http/http.wrappers.dev/u/test/agent-forge-ts"

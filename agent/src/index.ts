@@ -1,4 +1,4 @@
-import { DEFAULT_PORT, THIS_URL } from "./constants";
+import { DEFAULT_PORT } from "./constants";
 import { StepRequestBody, TaskRequestBody } from "./protocolTypes";
 import { ProtocolStore } from "./store";
 import {
@@ -29,7 +29,8 @@ import {
   HttpServer_WrapperCallback,
   Http_Module,
   InvocationContext_Module,
-  Step
+  Step,
+  ModuleBase
 } from "./wrap";
 import { InMemoryWorkspace } from "./workspaces";
 import { processMultipartRequest } from "./multipart";
@@ -501,12 +502,6 @@ export class Module extends ModuleBase {
         content
       }),
     };
-  }
-
-  routeGetAgentTasksByIdArtifactsById(
-    args: Args_routeGetAgentTasksByIdArtifactsById
-  ): HttpServer_Response {
-    throw new Error("Method not implemented.");
   }
 
   routeInfo(
