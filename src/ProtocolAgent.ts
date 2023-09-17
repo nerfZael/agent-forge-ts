@@ -9,11 +9,13 @@ import {
 } from "./protocolTypes";
 import { uuidv4 } from "./utils";
 import { InMemoryFile, InMemoryWorkspace } from "./workspaces";
+import { Agent } from "./Agent";
 
-export class Agent {
+export class ProtocolAgent {
   constructor(
+    private _agent: Agent,
     private _store: ProtocolStore,
-    private _workspace?: InMemoryWorkspace
+    private _workspace?: InMemoryWorkspace,
   ) {}
 
   runNextStep(taskId: string, stepRequest: StepRequestBody) {
@@ -23,12 +25,15 @@ export class Agent {
       throw new Error(`Task with id '${taskId}' not found`);
     }
 
-    const step = this.createStep(taskId, stepRequest, true);
+    const step = this.createStep(taskId, stepRequest, false);
+    
+    const response = this._agent.runStep(step.input);
+
     return this.updateStep(taskId, step.step_id, {
       ...step,
       status: Status.completed,
-      output: "Primary feedback...",
-      additional_output: "Additional feedback...",
+      output: response.output ?? null,
+      additional_output: "",
     });
   }
 

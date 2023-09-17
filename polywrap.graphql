@@ -7,7 +7,7 @@
 type Module {
   main(args: [String!]!): Int32!
   run(goal: String!): Step!
-  runStep(input: String, state: JSON!): Step!
+  runStep(input: String): Step!
 
   onStart: Boolean!
 
@@ -37,6 +37,6 @@ type Module {
 }
 
 type Step {
-  state: JSON!
+  isLast: Boolean!
   output: String
 }

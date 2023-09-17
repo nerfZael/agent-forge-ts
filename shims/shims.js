@@ -6,12 +6,6 @@ ${textEncoderShims}
 
 ${msgpackShims}
 
-function msgpackEncodeValue(value) {
-  return {
-    value: Array.from(encode(value)),
-  };
-}
-
 //HACK: remove this once codegen is fixed
 const __old_subinvoke = __wrap_subinvoke;
 __wrap_subinvoke = function (plugin, method, args) {
