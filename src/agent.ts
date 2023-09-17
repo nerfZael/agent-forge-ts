@@ -139,11 +139,11 @@ export class Agent {
 
   createArtifact(args: {
     taskId: string;
-    file: { file: InMemoryFile; name?: string };
+    file: { data: string; name?: string };
     relativePath: string;
   }) {
     const fileName = args.file.name ?? uuidv4();
-    const data = args.file.file.read();
+    const data = args.file.data;
 
     let filePath: string;
     if (args.relativePath.endsWith(fileName)) {

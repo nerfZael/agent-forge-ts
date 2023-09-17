@@ -35,7 +35,10 @@ export class InMemoryDir {
         return item;
     }
 
-    return undefined;
+    const newFile = new InMemoryFile();
+    this.content.set(name, newFile);
+
+    return newFile;
   }
 
   getDirectory(name: string): InMemoryDir | undefined {
@@ -44,7 +47,10 @@ export class InMemoryDir {
         return item;
     }
 
-    return undefined;
+    const newDir = new InMemoryDir();
+    this.content.set(name, newDir);
+
+    return newDir;
   }
 
   remove(name: string): boolean {

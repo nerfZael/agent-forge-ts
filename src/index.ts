@@ -26,11 +26,12 @@ import {
   HttpServer_Response,
   HttpServer_WrapperCallback,
   InvocationContext_Module,
-  Multipart_Module,
 } from "./wrap";
 import { Args_main, Args_run, Args_runStep, ModuleBase, Step } from "./wrap";
 import { Agent } from "./agent";
 import { OpenAI } from "./llm";
+import { InMemoryWorkspace } from "./workspaces";
+import { processMultipartRequest } from "./multipart";
 
 const createPaginationResponse = (args: {
   items: any[];
@@ -449,9 +450,16 @@ export class Module extends ModuleBase {
     args: Args_routePostAgentTasksByIdArtifacts
   ): HttpServer_Response {
     const body = args.request.body;
+    const textDecoder = new TextDecoder();
 
     if (!body) {
       throw new Error("Request body is required");
+    }
+
+    const taskId = args.request.params.find((param) => param.key === "task_id")?.value;
+
+    if (!taskId) {
+      throw new Error("task_id is required");
     }
 
     const headers = args.request.headers.map((header) => ({
@@ -459,75 +467,33 @@ export class Module extends ModuleBase {
       value: header.value,
     }));
 
-    console.log("BEFORE GETFILES");
+    const decodedBody = textDecoder.decode(body);
+    const boundary = headers.find((header) => header.key === "Content-Type")?.value ?? "";
 
-    const filesResult = Multipart_Module.getFiles({
-      headers,
-      body: body as any,
-    });
+    const multipartData = processMultipartRequest(decodedBody, boundary);
+    const relativePath = multipartData.fields.relative_path;
 
-    console.log("AFTER GETFILES");
-
-    if (!filesResult.ok) {
-      throw new Error(filesResult.error);
+    if (!relativePath) {
+      throw new Error("relative_path is required");
     }
 
-    const files = filesResult.value;
+    const files = multipartData.files;
 
-    if (!files || files.length === 0) {
+    if (!Object.keys(files).length) {
       throw new Error("No files found in request");
     }
 
-    files.map((file) => {
-      console.log(file.name);
-      console.log(file.content.byteLength);
-    });
+    const file = Object.values(files)[0]
 
-    // const data = parseBufferToJson(body) as {
-    //   task_id?: string;
-    //   relative_path?: string;
-    //   file?: {
-    //     file: ArrayBuffer;
-    //     filename?: string;
-    //   };
-    // };
-
-    // if (!data.task_id) {
-    //   throw new Error("task_id is required");
-    // }
-
-    // if (!data.relative_path) {
-    //   throw new Error("relative_path is required");
-    // }
-
-    // if (!data.file) {
-    //   throw new Error("file is required");
-    // }
-
-    // const fileName = data.file.filename ?? uuidv4();
-    // let filePath: string;
-
-    // if (data.relative_path.endsWith(fileName)) {
-    //   filePath = data.relative_path;
-    // } else {
-    //   filePath = `${data.relative_path}/${fileName}`;
-    // }
-
-    // const workspace = new InMemoryWorkspace();
-    // workspace.write(data.task_id, filePath, data.file.file);
-
-    // const store = new ProtocolStore();
-    // const workspace = new InMemoryWorkspace();
-    // const agent = new Agent(store, workspace);
-
-    // const artifact = agent.createArtifact({
-    //   taskId: data.task_id,
-    //   relativePath: data.relative_path,
-    //   file: {
-    //     file: new InMemoryFile("fileeeeee"),
-    //     name: "john.txt",
-    //   },
-    // });
+    const agent = new Agent(new ProtocolStore(), new InMemoryWorkspace());
+    const artifact = agent.createArtifact({
+      taskId,
+      file: {
+        data: file.data,
+        name: file.filename
+      },
+      relativePath
+    })
 
     return {
       statusCode: 200,
@@ -537,7 +503,7 @@ export class Module extends ModuleBase {
           value: "application/json",
         },
       ],
-      body: objectToArrayBuffer({}),
+      body: objectToArrayBuffer(artifact),
     };
   }
 
