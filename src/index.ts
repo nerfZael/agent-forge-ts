@@ -510,7 +510,46 @@ export class Module extends ModuleBase {
   routeGetAgentTasksByIdArtifactsById(
     args: Args_routeGetAgentTasksByIdArtifactsById
   ): HttpServer_Response {
-    throw new Error("Method not implemented.");
+    const routeParams = args.request.params;
+
+    const task_id = routeParams.find((param) => param.key === "task_id")?.value;
+    if (!task_id) throw new Error("task_id is required");
+
+    const artifact_id = routeParams.find((param) => param.key === "artifact_id")?.value;
+    if (!artifact_id) throw new Error("artifact_id is required");
+
+    const workspace = new InMemoryWorkspace();
+    const agent = new Agent(new ProtocolStore(), workspace);
+
+    const artifact = agent.getArtifactById(task_id, artifact_id);
+
+    if (!artifact) {
+      return {
+        statusCode: 404,
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/json",
+          },
+        ],
+        body: objectToArrayBuffer({ error: "Artifact not found" }),
+      };
+    }
+
+    const content = workspace.readFileSync(`${task_id}/${artifact.relative_path}/${artifact.file_name}`);
+
+    return {
+      statusCode: 200,
+      headers: [
+        {
+          key: "Content-Type",
+          value: "application/json",
+        },
+      ],
+      body: objectToArrayBuffer({
+        content
+      }),
+    };
   }
 
   get uri(): string {

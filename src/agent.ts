@@ -8,7 +8,7 @@ import {
   TaskRequestBody,
 } from "./protocolTypes";
 import { uuidv4 } from "./utils";
-import { InMemoryFile, InMemoryWorkspace } from "./workspaces";
+import { InMemoryWorkspace } from "./workspaces";
 
 export class Agent {
   constructor(
@@ -167,26 +167,6 @@ export class Agent {
 
     return artifact;
   }
-
-  // createArtifact(args: {
-  //   taskId: string;
-  //   fileName: string;
-  //   relativePath: string;
-  //   agentCreated: boolean;
-  // }) {
-  //   const artifact: Artifact = {
-  //     artifact_id: uuidv4(),
-  //     agent_created: args.agentCreated,
-  //     created_at: "1694726426746",
-  //     modified_at: "1694726426746",
-  //     relative_path: args.relativePath,
-  //     file_name: args.fileName,
-  //   };
-
-  //   this.addArtifactToTask(args.taskId, artifact);
-
-  //   return artifact;
-  // }
 
   getArtifactById(taskId: string, artifactId: string): Artifact | undefined {
     const task = this.getTaskById(taskId);
