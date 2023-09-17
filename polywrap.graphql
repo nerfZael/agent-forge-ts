@@ -10,6 +10,7 @@ type Module {
   runStep(input: String): Step!
 
   onStart: Boolean!
+  routeInfo(request: HttpServer_Request!): HttpServer_Response!
 
   routeGetRoot(request: HttpServer_Request!): HttpServer_Response!
   routeGetHearbeat(request: HttpServer_Request!): HttpServer_Response!
